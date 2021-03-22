@@ -1,0 +1,151 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT-0
+Parameters:
+  SageMakerStudioRoleName:
+    Type: String
+    Description: Name of the role used by SageMaker Studio
+    MinLength: 1
+    AllowedPattern: ^[a-zA-Z](-*[a-zA-Z0-9])*
+  PortfolioName:
+    Type: String
+    Default: SageMaker Workshop Templates
+  TemplateName:
+    Type: String
+    Default: SageMaker Edge Manager WindTurbine Workshop
+
+Resources:
+  SageMakerStudioOrganizationProjectsPortfolio:
+    Type: AWS::ServiceCatalog::Portfolio
+    Properties: 
+      Description: "Creates a new portfolio with a template for SagemakerProjects"
+      DisplayName: !Ref PortfolioName
+      ProviderName: "Edge Manager Workshop"
+  
+  SageMakerEdgeManagerWorkshop:
+    Type: AWS::ServiceCatalog::CloudFormationProduct
+    Properties: 
+      Description: Deploys the template for creating a new SageMaker setup for the workshop
+      Name: !Ref TemplateName
+      Owner: acme
+      ProvisioningArtifactParameters: 
+        - Description: "SageMaker Project template for the Edge Manager workshop"
+          DisableTemplateValidation: false
+          Info: 
+            LoadTemplateFromURL: "https://s3.amazonaws.com/spock.cloud/windturbine/sagemaker_project.yml"
+      Tags:
+        - Key: sagemaker:studio-visibility
+          Value: true
+
+  LaunchRoleConstraint:
+    Type: AWS::ServiceCatalog::LaunchRoleConstraint
+    Properties: 
+      Description: "This is a launch constraint restriction for the SageMaker Launch Role"
+      PortfolioId: !Ref SageMakerStudioOrganizationProjectsPortfolio
+      ProductId: !Ref SageMakerEdgeManagerWorkshop
+      RoleArn: !Sub "arn:aws:iam::${AWS::AccountId}:role/service-role/AmazonSageMakerServiceCatalogProductsLaunchRole"
+    DependsOn: # make sure this is the last thing created
+      - SageMakerStudioOrganizationProjectsPortfolio
+      - SageMakerEdgeManagerWorkshop
+      - AdditionalDeploymentPolicy
+      - AdditionalPrivilegesForStudio
+
+  PrincipalAssociation:
+    Type: AWS::ServiceCatalog::PortfolioPrincipalAssociation
+    Properties:
+      PortfolioId: !Ref SageMakerStudioOrganizationProjectsPortfolio
+      PrincipalType: IAM
+      PrincipalARN: !Sub arn:aws:iam::${AWS::AccountId}:role/${SageMakerStudioRoleName}
+    DependsOn:
+      - SageMakerStudioOrganizationProjectsPortfolio
+
+  ProductAssociation:
+    Type: AWS::ServiceCatalog::PortfolioProductAssociation
+    Properties: 
+      PortfolioId: !Ref SageMakerStudioOrganizationProjectsPortfolio
+      ProductId: !Ref SageMakerEdgeManagerWorkshop
+    DependsOn:
+      - SageMakerStudioOrganizationProjectsPortfolio
+      - SageMakerEdgeManagerWorkshop
+  
+  AdditionalPrivilegesForStudio:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+            - "iot:CreateJob"
+            - "iot:DescribeJob"
+            - "iot:DescribeJobExecution"
+            - "iot:DescribeEndpoint"
+            - "iot:ListTargetsForPolicy"
+            - "iot:ListPrincipalThings"
+            - "iot:DetachThingPrincipal"
+            - "iot:DetachPolicy"
+            - "iot:DeleteRoleAlias"
+            - "iot:DeleteThingGroup"
+            - "sts:GetCallerIdentity"
+            Resource: 
+              - "*"
+          - Effect: Allow
+            Action:
+            - "ecr:ListImages"
+            - "ecr:BatchDeleteImage"
+            Resource: 
+              - !Sub "arn:aws:ecr:*:${AWS::AccountId}:repository/sagemaker-python-processing-*"
+      PolicyName: !Sub SageMakerStudioWindTurbineAdditional
+      Roles:
+        - !Ref SageMakerStudioRoleName
+
+  AdditionalDeploymentPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+            - "iam:PutRolePolicy"
+            - "iam:DeleteRolePolicy"
+            - "iam:GetRolePolicy"
+            Resource: 
+              - !Sub "arn:aws:iam::${AWS::AccountId}:role/service-role/AmazonSageMakerServiceCatalogProductsUseRole"
+              - !Sub "arn:aws:iam::${AWS::AccountId}:role/service-role/${SageMakerStudioRoleName}"
+              - !Sub "arn:aws:iam::${AWS::AccountId}:role/WindTurbineFarmRole*"
+          - Effect: Allow
+            Action:
+            - "iam:GetRole"
+            - "iam:DeleteRole"
+            - "iam:CreateRole"
+            Resource:
+              - !Sub "arn:aws:iam::${AWS::AccountId}:role/WindTurbineFarmRole*"
+          - Effect: Allow
+            Action:
+            - "s3:GetObject"
+            Resource:
+            - "arn:aws:s3:::spock.cloud/windturbine/*" 
+          - Effect: Allow
+            Action:
+            - "sagemaker:CreateDeviceFleet"
+            - "sagemaker:DeleteDeviceFleet"
+            - "sagemaker:DescribeDeviceFleet"
+            Resource:
+            - !Sub "arn:aws:sagemaker:*:${AWS::AccountId}:device-fleet/wind-turbine-farm*" 
+          - Effect: Allow
+            Action:
+            - "iot:CreateThing"
+            - "iot:DescribeThing"
+            - "iot:DeleteThing"
+            Resource:
+            - !Sub "arn:aws:iot:*:${AWS::AccountId}:thing/edge-device-*" 
+          - Effect: Allow
+            Action:
+            - "iot:GetPolicy"
+            - "iot:CreatePolicy"
+            - "iot:DeletePolicy"
+            Resource:
+            - !Sub "arn:aws:iot:*:${AWS::AccountId}:policy/WindTurbineFarmPolicy*"
+      PolicyName: !Sub SageMakerEdgeManagerWindTurbineAdditional
+      Roles:
+        - AmazonSageMakerServiceCatalogProductsLaunchRole

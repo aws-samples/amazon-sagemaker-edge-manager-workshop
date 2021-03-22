@@ -1,0 +1,33 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT-0
+
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.8
+    commands:
+      # Upgrade AWS CLI to the latest version
+      - pip install --upgrade --force-reinstall botocore boto3 awscli
+
+  build:
+    commands:
+      # Check if there is an available ECR repo for the processing image      
+      - IMAGE_STATUS=$(python setup/check_processing_image.py --repo-name "$IMAGE_REPO_NAME")
+      - if [ "$IMAGE_STATUS" == "REPO_NOT_FOUND" ]; then echo "Critical error! Repo not found. Aborting..."; exit 1; fi
+      # Repo found. Now, build the docker image. It will be used by the ML Pipeline to prepare the data
+      - if [ "$IMAGE_STATUS" == "IMAGE_NOT_FOUND" ]; then cd setup && bash build_image.sh && cd ..; fi
+      # Create some resources and prepare the package with certs and configuration for the edge devices
+      - python setup/run.py --sagemaker-project-id "$SAGEMAKER_PROJECT_ID" --sagemaker-project-name "$SAGEMAKER_PROJECT_NAME" --artifact-bucket "$ARTIFACT_BUCKET" --aws-region "$AWS_REGION"
+      # Replace the project name placeholders from the notebooks      
+      - git config --global user.email "root@example.com"
+      - git config --global user.name "Edge Manager Workshop"
+      - git config --global credential.helper '!aws codecommit credential-helper $@'
+      - git config --global credential.UseHttpPath true
+      - git clone https://git-codecommit.${AWS_REGION}.amazonaws.com/v1/repos/sagemaker-wind-turbine-farm-${SAGEMAKER_PROJECT_ID}
+      - cd sagemaker-wind-turbine-farm-${SAGEMAKER_PROJECT_ID}
+      - REPLACE=$(grep "<<PROJECT_NAME>>" lab/*.ipynb -q && echo "TRUE" || echo "FALSE")
+      - echo "Is there any placeholder to replace? $REPLACE"
+      - if [ "$REPLACE" == "TRUE" ]; then sed -i "s#<<PROJECT_NAME>>#${SAGEMAKER_PROJECT_NAME}#g" lab/*.ipynb && git commit -m ' project name' lab/*.ipynb && git push; fi
+      - cd ..

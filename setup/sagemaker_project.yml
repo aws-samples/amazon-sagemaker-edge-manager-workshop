@@ -1,0 +1,357 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT-0
+Description: "This is a SageMaker Project that will create all the resources required by the WindTurbine Farm Workshop"
+Parameters:
+  SageMakerProjectName:
+    Type: String
+    Description: Name of the project
+    MinLength: 1
+    MaxLength: 32
+    AllowedPattern: ^[a-zA-Z](-*[a-zA-Z0-9])*
+
+  SageMakerProjectId:
+    Type: String
+    Description: Service generated Id of the project.
+
+Resources:
+  WindTurbineFarmBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Delete
+    Properties:
+      BucketName: !Sub sagemaker-wind-turbine-farm-${SageMakerProjectId}
+    
+  WindTurbineFarmRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: WindTurbineFarmRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+              - sagemaker.amazonaws.com
+              - iot.amazonaws.com
+              - credentials.iot.amazonaws.com
+          Action:
+            - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: !Sub WindTurbineFarmRolePolicy-${SageMakerProjectId}
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+            - Effect: Allow
+              Action:
+              - 's3:GetObject'
+              - 's3:PutObject'
+              - 's3:ListBucket'
+              - 's3:GetBucketLocation'
+              Resource: 
+              - !GetAtt WindTurbineFarmBucket.Arn
+              - !Join [ '/', [ !GetAtt WindTurbineFarmBucket.Arn, '*' ] ]
+            - Effect: Allow
+              Action:
+              - 's3:ListAllMyBuckets'
+              Resource:
+              - '*'
+            - Effect: Allow
+              Action:
+              - 'iot:CreateRoleAlias'
+              - 'iot:DescribeRoleAlias'
+              - 'iot:UpdateRoleAlias'
+              - 'iot:TagResource'
+              - 'iot:ListTagsForResource'
+              Resource:
+              - !Sub "arn:aws:iot:${AWS::Region}:${AWS::AccountId}:rolealias/SageMakerEdge*"
+            - Effect: Allow
+              Action:
+              - 'iam:GetRole'
+              - 'iam:PassRole'
+              Resource:
+              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/*SageMaker*'
+              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/*Sagemaker*'
+              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/*sagemaker*'
+              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/WindTurbineFarmRole'
+            - Effect: Allow
+              Action:
+              - 'sagemaker:GetDeviceRegistration'
+              - 'sagemaker:SendHeartbeat'
+              Resource: "*"
+
+  AdditionalDeploymentPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+            - "iot:DescribeEndpoint"
+            - "iot:CreateThingGroup"
+            - "iot:DeleteThingGroup"
+            - "iot:AttachPolicy"
+            - "iot:DetachPolicy"
+            - "iot:AttachThingPrincipal"
+            - "iot:DetachThingPrincipal"
+            - "iot:AttachPrincipalPolicy"
+            - "iot:DetachPrincipalPolicy"
+            - "iot:DescribeThingGroup"
+            - "iot:AddThingToThingGroup"
+            - "iot:RemoveThingToThingGroup"
+            - "iot:ListThingPrincipals"
+            - "iot:CreateKeysAndCertificate"
+            - "iot:DeleteCertificate"
+            Resource: "*"
+          - Effect: Allow
+            Action:
+            - "sagemaker:DescribeDeviceFleet"
+            - "sagemaker:DeregisterDevices"
+            - "sagemaker:RegisterDevices"
+            - "sagemaker:DescribeDevice"
+            Resource:
+            - !Sub "arn:aws:sagemaker:*:${AWS::AccountId}:device-fleet/*"
+          - Effect: Allow
+            Action:
+            - "s3:ListBucket"
+            Resource:
+            - "arn:aws:s3:::sagemaker-*"
+          - Effect: Allow
+            Action:
+            - "codecommit:GitPull"
+            - "codecommit:GitPush"
+            Resource:
+            - !GetAtt CodeRepository.Arn
+          - Effect: Allow
+            Action:
+            - "ecr:ListImages"
+            - "ecr:PutImage"
+            - "ecr:InitiateLayerUpload"
+            - "ecr:UploadLayerPart"
+            - "ecr:GetDownloadUrlForLayer"
+            - "ecr:BatchGetImage"
+            - "ecr:BatchCheckLayerAvailability"
+            - "ecr:CompleteLayerUpload"
+            Resource:
+            - !Sub "arn:aws:ecr:${AWS::Region}:${AWS::AccountId}:repository/sagemaker-python-processing*"
+      PolicyName: !Sub AdditionalDeployment-${SageMakerProjectId}
+      Roles:
+        - AmazonSageMakerServiceCatalogProductsUseRole 
+
+  WindTurbineFarmPolicy:
+    Type: AWS::IoT::Policy
+    Properties: 
+      PolicyName: !Sub "WindTurbineFarmPolicy-${SageMakerProjectId}"
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action:
+          - iot:Connect
+          Resource:
+          - !Sub "arn:aws:iot:${AWS::Region}:${AWS::AccountId}:client/*"
+        - Effect: Allow
+          Action:
+          - iot:Publish
+          - iot:Receive
+          Resource:
+          - !Sub "arn:aws:iot:${AWS::Region}:${AWS::AccountId}:topic/wind-turbine/*"
+          - !Sub "arn:aws:iot:${AWS::Region}:${AWS::AccountId}:topic/$aws/*"
+        - Effect: Allow
+          Action:
+          - iot:Subscribe
+          Resource:
+          - !Sub "arn:aws:iot:${AWS::Region}:${AWS::AccountId}:topicfilter/wind-turbine/*"
+          - !Sub "arn:aws:iot:${AWS::Region}:${AWS::AccountId}:topicfilter/$aws/*"
+          - !Sub "arn:aws:iot:${AWS::Region}:${AWS::AccountId}:topic/$aws/*"
+        - Effect: Allow
+          Action:
+          - iot:UpdateThingShadow
+          Resource:
+          - !Sub "arn:aws:iot:${AWS::Region}:${AWS::AccountId}:topicfilter/wind-turbine/*"
+          - !Sub "arn:aws:iot:${AWS::Region}:${AWS::AccountId}:thing/edge-device-*"
+        - Effect: Allow
+          Action:
+          - iot:AssumeRoleWithCertificate
+          Resource:
+          - !Sub "arn:aws:iot:${AWS::Region}:${AWS::AccountId}:rolealias/SageMakerEdge-wind-turbine-farm-${SageMakerProjectId}"
+
+  # IoT Things representing each device
+  Thing0:
+    Type: AWS::IoT::Thing
+    Properties:
+      ThingName: edge-device-0
+  Thing1:
+    Type: AWS::IoT::Thing
+    Properties:
+      ThingName: edge-device-1
+  Thing2:
+    Type: AWS::IoT::Thing
+    Properties:
+      ThingName: edge-device-2
+  Thing3:
+    Type: AWS::IoT::Thing
+    Properties:
+      ThingName: edge-device-3
+  Thing4:
+    Type: AWS::IoT::Thing
+    Properties:
+      ThingName: edge-device-4
+
+  EdgeDeviceFleet:
+     Type: AWS::SageMaker::DeviceFleet
+     Properties: 
+       Description: String
+       DeviceFleetName: !Sub wind-turbine-farm-${SageMakerProjectId}
+       OutputConfig:        
+         S3OutputLocation: !Join [ '/', [ 's3:/', !Ref 'WindTurbineFarmBucket', 'data'] ]
+       RoleArn: !GetAtt WindTurbineFarmRole.Arn
+
+  ## CI/CD Pipeline
+  WindTurbinePreprocessingRepository: 
+    Type: AWS::ECR::Repository
+    Properties: 
+      RepositoryName: !Sub "sagemaker-python-processing-${SageMakerProjectId}"
+
+  CodeRepository:
+    Type: AWS::CodeCommit::Repository
+    Properties:
+      # Max allowed length: 100 chars
+      RepositoryName: !Sub sagemaker-wind-turbine-farm-${SageMakerProjectId} # max: 10+33+15+11=69
+      RepositoryDescription: !Sub Infrastructure as code for the Project ${SageMakerProjectName}
+      Code:
+        S3:
+          Bucket: spock.cloud
+          Key: windturbine/artifacts/wind_turbine_farm_v1.0.zip
+        BranchName: main
+
+  InfraSetupBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      # Max length: 255 chars
+      Name: !Sub sagemaker-wind-turbine-farm-${SageMakerProjectId}-setup # max: 10+33+15+11=69
+      Description: Builds the Cfn template which defines the Endpoint with specified configuration
+      ServiceRole:
+        !Join [ ':', [ 'arn', !Ref 'AWS::Partition', 'iam:', !Ref 'AWS::AccountId', 'role/service-role/AmazonSageMakerServiceCatalogProductsUseRole'] ]
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: 'aws/codebuild/amazonlinux2-x86_64-standard:3.0' 
+        PrivilegedMode: true
+        EnvironmentVariables:
+         - Name: SAGEMAKER_PROJECT_NAME
+           Value: !Ref SageMakerProjectName
+         - Name: SAGEMAKER_PROJECT_ID
+           Value: !Ref SageMakerProjectId
+         - Name: ARTIFACT_BUCKET
+           Value: !Ref WindTurbineFarmBucket
+         - Name: AWS_REGION
+           Value: !Ref AWS::Region
+         - Name: AWS_ACCOUNT_ID
+           Value: !Ref AWS::AccountId
+         - Name: IMAGE_REPO_NAME
+           Value: !Ref WindTurbinePreprocessingRepository
+         - Name: IMAGE_TAG
+           Value: "latest"
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: buildspec.yml
+      TimeoutInMinutes: 30
+
+  ModelDeployPipeline:
+    Type: AWS::CodePipeline::Pipeline
+    DependsOn: WindTurbineFarmBucket
+    Properties:
+      # Max length: 100 chars
+      Name: !Sub sagemaker-wind-turbine-farm-${SageMakerProjectName}-setup # max: 10+33+15+11=69
+      RoleArn:
+        !Join [ ':', [ 'arn', !Ref 'AWS::Partition', 'iam:', !Ref 'AWS::AccountId', 'role/service-role/AmazonSageMakerServiceCatalogProductsUseRole'] ]
+      ArtifactStore:
+        Type: S3
+        Location:
+          !Ref WindTurbineFarmBucket
+      Stages:
+        - Name: Source
+          Actions:
+            - Name: ModelDeployInfraCode
+              ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Provider: CodeCommit
+                Version: 1
+              Configuration:
+                # need to explicitly set this to false per https://docs.aws.amazon.com/codepipeline/latest/userguide/update-change-detection.html
+                PollForSourceChanges: false
+                RepositoryName: !GetAtt CodeRepository.Name
+                BranchName: main
+              OutputArtifacts:
+                - Name: SourceArtifact
+
+        - Name: Build
+          Actions:
+            - Name: SetupEnvironment
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              InputArtifacts:
+                - Name: SourceArtifact
+              OutputArtifacts:
+                - Name: BuildArtifact
+              Configuration:
+                ProjectName: !Ref InfraSetupBuildProject
+              RunOrder: 1
+
+  ModelDeploySageMakerEventRule:
+    Type: AWS::Events::Rule
+    Properties:
+      # Max length allowed: 64
+      Name: !Sub sagemaker-${SageMakerProjectName}-${SageMakerProjectId}-model # max: 10+33+15+5=63 chars
+      Description: "Rule to trigger a deployment when SageMaker Model registry is updated with a new model package. For example, a new model package is regis
+tered with Registry"
+      EventPattern:
+        source:
+          - "aws.sagemaker"
+        detail-type:
+          - "SageMaker Model Package State Change"
+        detail:
+          ModelPackageGroupName:
+            - !Ref SageMakerProjectName
+      State: "ENABLED"
+      Targets:
+        -
+          Arn:
+            !Join [ ':', [ 'arn', !Ref 'AWS::Partition', 'codepipeline', !Ref 'AWS::Region', !Ref 'AWS::AccountId', !Ref ModelDeployPipeline ] ]
+          RoleArn:
+            !Join [ ':', [ 'arn', !Ref 'AWS::Partition', 'iam:', !Ref 'AWS::AccountId', 'role/service-role/AmazonSageMakerServiceCatalogProductsUseRole'] ]
+          Id: !Sub sagemaker-${SageMakerProjectName}-trigger
+
+  ModelDeployCodeCommitEventRule:
+    Type: AWS::Events::Rule
+    Properties:
+      # Max length allowed: 64
+      Name: !Sub sagemaker-${SageMakerProjectName}-${SageMakerProjectId}-code # max: 10+33+15+4=62 chars
+      Description: "Rule to trigger a deployment when CodeCommit is updated with a commit"
+      EventPattern:
+        source:
+          - "aws.codecommit"
+        detail-type:
+          - "CodeCommit Repository State Change"
+        resources:
+          - !GetAtt CodeRepository.Arn
+        detail:
+          referenceType:
+            - "branch"
+          referenceName:
+            - "main"
+      State: "ENABLED"
+      Targets:
+        -
+          Arn:
+            !Join [ ':', [ 'arn', !Ref 'AWS::Partition', 'codepipeline', !Ref 'AWS::Region', !Ref 'AWS::AccountId', !Ref ModelDeployPipeline ] ]
+          RoleArn:
+            !Join [ ':', [ 'arn', !Ref 'AWS::Partition', 'iam:', !Ref 'AWS::AccountId', 'role/service-role/AmazonSageMakerServiceCatalogProductsUseRole'] ]
+          Id: !Sub codecommit-${SageMakerProjectName}-trigger
