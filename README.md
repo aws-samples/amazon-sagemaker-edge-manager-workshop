@@ -56,4 +56,4 @@ Notice that a Docker image is also created and stored into an ECR repo in this p
 
 ## Running the exercices
 
-Alright, now you are ready to start this workshop. [Click on this link to get started](notebooks/README.md).
+Alright, now you are ready to start this workshop. [Click on this link to get started](lab/README.md).
