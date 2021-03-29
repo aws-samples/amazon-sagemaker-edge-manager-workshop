@@ -1,6 +1,6 @@
 # Module 1 - Running the exercises
 
-This module is divided in four exercises: Warm up, Data Visualizatio, Model Building and Fleet Simulation. To run the exercises:  
+This module is divided in four exercises: Warm up, Data Visualization, Model Building and Fleet Simulation. To run the exercises:  
   1. Open SageMaker Studio;
   2. Double-click the project you've created with **SageMaker Edge Manager WindTurbine Workshop** template;
   3. Click on the tab **Repositories**;
