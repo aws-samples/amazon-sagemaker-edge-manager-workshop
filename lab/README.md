@@ -1,16 +1,23 @@
 # Module 1 - Running the exercises
 
-This module is divided in three exercises: Data Visualizatio, Model Building and Fleet Simulation. To run the exercises:  
+This module is divided in four exercises: Warm up, Data Visualizatio, Model Building and Fleet Simulation. To run the exercises:  
   1. Open SageMaker Studio;
   2. Double-click the project you've created with **SageMaker Edge Manager WindTurbine Workshop** template;
   3. Click on the tab **Repositories**;
   4. Click on the **Local path** link of your repo (clone it if needed);
   5. Double-click on the directory **notebooks** and you will see the following exercices:
 
-## 1/3 - Data Visualisation
+## 0/4 - Warm up
+<a href="00 - Warmup.ipynb">Notebook</a>: In this notebook you will learn how to prepare a minimalist environment to run SageMaker Edge Agent and invoke its API using Python3;
+
+<p align="center">
+    <img src="../imgs/EdgeManagerWorkshop_MinimalistArchitecture.png"></a>
+</p>
+
+## 1/4 - Data Visualisation
 <a href="01 - Data Visualization.ipynb">Notebook</a>: In this notebook you will take a look on the raw data from the sensors, the selected features for training the model and how to prepare the dataset;
 
-## 2/3 - Model Building
+## 2/4 - Model Building
 
 <a href="02 - Training with Pytorch.ipynb">Notebook</a>: How to create a ML Pipeline using SageMaker Model Building to: prepare the data, train the model & run batch prediction. Besides, you will see how to compile your trainied model to your edge device using SageMaker NEO and how to create a deployment package using SageMaker Edge Manager. The following diagram, shows the ML Pipeline and the other tasks you'll execute in this exercise.
 
@@ -18,7 +25,7 @@ This module is divided in three exercises: Data Visualizatio, Model Building and
     <img src="../imgs/EdgeManagerWorkshop_ModelPipeline.png"></a>
 </p>
 
-## 3/3 - Fleet Simulation
+## 3/4 - Fleet Simulation
 <a href="03 - Run Fleet.ipynb">Notebook</a>: Here you'll run the simulator of the wind turbine farm and launch 5 SageMaker Edge Agents (one per turbine). A Python application then reads the sensors data, prepares the data and then invokes the anomaly detection model by calling SageMaker Edge Manager's API. You'll be able to visualize all this process in the Simulator's UI. The following diagram shows the application architecture. The application is divided into two parts: Device Application and Simulator.
 <p align="center">
     <img src="../imgs/EdgeManagerWorkshop_App.png"></a>
