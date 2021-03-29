@@ -44,8 +44,7 @@ Resources:
       ProductId: !Ref SageMakerEdgeManagerWorkshop
       RoleArn: !Sub "arn:aws:iam::${AWS::AccountId}:role/service-role/AmazonSageMakerServiceCatalogProductsLaunchRole"
     DependsOn: # make sure this is the last thing created
-      - SageMakerStudioOrganizationProjectsPortfolio
-      - SageMakerEdgeManagerWorkshop
+      - ProductAssociation
       - AdditionalDeploymentPolicy
       - AdditionalPrivilegesForStudio
 
@@ -118,6 +117,7 @@ Resources:
             - "iam:GetRole"
             - "iam:DeleteRole"
             - "iam:CreateRole"
+            - "iam:PassRole"
             Resource:
               - !Sub "arn:aws:iam::${AWS::AccountId}:role/WindTurbineFarmRole*"
           - Effect: Allow
