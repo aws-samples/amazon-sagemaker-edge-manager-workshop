@@ -122,18 +122,6 @@ Resources:
             - "codecommit:GitPush"
             Resource:
             - !GetAtt CodeRepository.Arn
-          - Effect: Allow
-            Action:
-            - "ecr:ListImages"
-            - "ecr:PutImage"
-            - "ecr:InitiateLayerUpload"
-            - "ecr:UploadLayerPart"
-            - "ecr:GetDownloadUrlForLayer"
-            - "ecr:BatchGetImage"
-            - "ecr:BatchCheckLayerAvailability"
-            - "ecr:CompleteLayerUpload"
-            Resource:
-            - !Sub "arn:aws:ecr:${AWS::Region}:${AWS::AccountId}:repository/sagemaker-python-processing*"
       PolicyName: !Sub AdditionalDeployment-${SageMakerProjectId}
       Roles:
         - AmazonSageMakerServiceCatalogProductsUseRole 
@@ -245,8 +233,6 @@ Resources:
            Value: !Ref AWS::Region
          - Name: AWS_ACCOUNT_ID
            Value: !Ref AWS::AccountId
-         - Name: IMAGE_REPO_NAME
-           Value: !Ref WindTurbinePreprocessingRepository
          - Name: IMAGE_TAG
            Value: "latest"
       Source:
