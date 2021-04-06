@@ -207,12 +207,6 @@ Resources:
          S3OutputLocation: !Join [ '/', [ 's3:/', !Ref 'WindTurbineFarmBucket', 'data'] ]
        RoleArn: !GetAtt WindTurbineFarmRole.Arn
 
-  ## CI/CD Pipeline
-  WindTurbinePreprocessingRepository: 
-    Type: AWS::ECR::Repository
-    Properties: 
-      RepositoryName: !Sub "sagemaker-python-processing-${SageMakerProjectId}"
-
   CodeRepository:
     Type: AWS::CodeCommit::Repository
     Properties:

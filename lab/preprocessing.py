@@ -1,5 +1,10 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: MIT-0
+import sys
+import subprocess
+# we need a special package for cleaning our data, lets pip install it first
+subprocess.check_call([sys.executable, "-m", "pip", "install", "pywavelets==1.1.1"])
+
 import argparse
 import os
 import warnings
@@ -71,7 +76,7 @@ if __name__=='__main__':
     args, _ = parser.parse_known_args()
 
     print('Received arguments {}'.format(args))
-    
+
     INTERVAL = args.interval # seconds
     TIME_STEPS = args.time_steps * INTERVAL # Xms -> seg: Xms * Y
     STEP = args.step

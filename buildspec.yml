@@ -13,11 +13,6 @@ phases:
 
   build:
     commands:
-      # Check if there is an available ECR repo for the processing image      
-      - IMAGE_STATUS=$(python setup/check_processing_image.py --repo-name "$IMAGE_REPO_NAME")
-      - if [ "$IMAGE_STATUS" == "REPO_NOT_FOUND" ]; then echo "Critical error! Repo not found. Aborting..."; exit 1; fi
-      # Repo found. Now, build the docker image. It will be used by the ML Pipeline to prepare the data
-      - if [ "$IMAGE_STATUS" == "IMAGE_NOT_FOUND" ]; then cd setup && bash build_image.sh && cd ..; fi
       # Create some resources and prepare the package with certs and configuration for the edge devices
       - python setup/run.py --sagemaker-project-id "$SAGEMAKER_PROJECT_ID" --sagemaker-project-name "$SAGEMAKER_PROJECT_NAME" --artifact-bucket "$ARTIFACT_BUCKET" --aws-region "$AWS_REGION"
       # Replace the project name placeholders from the notebooks      
