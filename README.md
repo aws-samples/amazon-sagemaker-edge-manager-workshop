@@ -52,8 +52,6 @@ After a new project is created, CodePipeline will be triggered automatically to 
     <img src="imgs/EdgeManagerWorkshop_CodeBuild.png"></img>
 </p>
 
-Notice that a Docker image is also created and stored into an ECR repo in this process. This Docker image will be used by the ML Pipeline for data preparation. It contains an important library that **denoises** the raw data from the sensors (PyWavelet).
-
 ## Running the exercices
 
 Alright, now you are ready to start this workshop. [Click on this link to get started](lab/README.md).
