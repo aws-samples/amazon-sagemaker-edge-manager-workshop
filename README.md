@@ -47,7 +47,7 @@ The following diagram shows which resources were deployed via CloudFormation by 
     <img src="imgs/EdgeManagerWorkshop_CFN.png"></img>
 </p>
 
-After a new project is created, CodePipeline will be triggered automatically to complete the setup of the environment, through the CodeBuild project. New resources will be created and configured by this process. A **.zip** file with the certificates and the configuration file for each Edge Manager device will be prepared and copied to the S3 bucket of the project, as you can see in the diagram bellow:
+After a new project is created, CodePipeline will be triggered automatically to complete the setup of the environment, through the CodeBuild project. New resources will be created and configured by this process. [Click on the this link to open CodePipeline console and check the progress of this step](https://console.aws.amazon.com/codesuite/codepipeline/pipelines). A **.zip** file with the certificates and the configuration file for each Edge Manager device will be prepared and copied to the S3 bucket of the project, as you can see in the diagram bellow:
 <p align="center">
     <img src="imgs/EdgeManagerWorkshop_CodeBuild.png"></img>
 </p>
