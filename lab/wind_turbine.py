@@ -14,15 +14,6 @@ from   sklearn.model_selection import KFold
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
-class View(nn.Module):
-    def __init__(self, shape):
-        super().__init__()
-        self.shape = shape
-
-    def forward(self, input):
-        shape = [input.shape[0]] + list(self.shape)        
-        return input.view(shape)
-
 def create_model(n_features, dropout=0):    
     return torch.nn.Sequential(
         torch.nn.Conv2d(n_features, 32, kernel_size=2, padding=1),

@@ -158,7 +158,7 @@ class WindTurbineFarm(object):
                     x = np.transpose(x, (0, 2, 1)).reshape(x.shape[0], self.n_features, 10, 10)
 
                     # run the model
-                    p = self.edge_agents[idx].predict(self.model_meta[idx]['model_name'], x, False)
+                    p = self.edge_agents[idx].predict(self.model_meta[idx]['model_name'], x)
                     if p is not None:
 
                         a = x.reshape(x.shape[0], self.n_features, 100).transpose((0,2,1))

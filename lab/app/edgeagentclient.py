@@ -42,13 +42,23 @@ class EdgeAgentClient(object):
         except Exception as e:
             logging.error(e)
             
-    def predict(self, model_name, x, capture=False):        
+    def create_tensor(self, x, tensor_name):
+        if (x.dtype != np.float32):
+            raise Exception( "It only supports numpy float32 arrays for this tensor" )
+        tensor = agent.Tensor()
+        tensor.tensor_metadata.name = tensor_name
+        tensor.tensor_metadata.data_type = agent.FLOAT32
+        for s in x.shape: tensor.tensor_metadata.shape.append(s)
+        tensor.byte_data = x.tobytes()
+        return tensor
+    
+    def predict(self, model_name, x, shm=False):
         """
         Invokes the model and get the predictions
         """
         try:
             if self.model_map.get(model_name) is None:
-                return None
+                raise Exception('Model %s not loaded' % model_name)
             # Create a request
             req = agent.PredictRequest()
             req.name = model_name
@@ -57,31 +67,26 @@ class EdgeAgentClient(object):
             meta = self.model_map[model_name]['in'][0]
             tensor.tensor_metadata.name = meta.name
             tensor.tensor_metadata.data_type = meta.data_type
-            num_floats = 1
-            for s in meta.shape: tensor.tensor_metadata.shape.append(s); num_floats *= s
-            tensor.byte_data = struct.pack('%df' % num_floats, *x.flatten())
+            for s in meta.shape: tensor.tensor_metadata.shape.append(s)
+
+            if shm:
+                tensor.shared_memory_handle.offset = 0
+                tensor.shared_memory_handle.segment_id = x
+            else:
+                tensor.byte_data = x.astype(np.float32).tobytes()
+
             req.tensors.append(tensor)
-            
+
             # Invoke the model
             resp = self.agent.Predict(req)
-            if capture:
-                out_tensor = agent.Tensor()
-                out_tensor.tensor_metadata.name = resp.tensors[0].tensor_metadata.name
-                out_tensor.tensor_metadata.data_type = resp.tensors[0].tensor_metadata.data_type
-                for i in resp.tensors[0].tensor_metadata.shape: out_tensor.tensor_metadata.shape.append(i)
-                out_tensor.byte_data = bytes(resp.tensors[0].byte_data)
-                self.capture_data(model_name, tensor, out_tensor)
 
             # Parse the output
             meta = self.model_map[model_name]['out'][0]
-            shape = []
-            num_floats = 1            
             tensor = resp.tensors[0]
-            for s in tensor.tensor_metadata.shape: num_floats *= s; shape += [s]
-            data = np.array(struct.unpack('%df' % num_floats, tensor.byte_data))
-            return data.reshape(shape)
+            data = np.frombuffer(tensor.byte_data, dtype=np.float32)
+            return data.reshape(tensor.tensor_metadata.shape)
         except Exception as e:
-            logging.error(e)        
+            logging.error(e)
             return None
 
     def is_model_loaded(self, model_name):
