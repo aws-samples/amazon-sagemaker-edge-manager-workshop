@@ -18,7 +18,7 @@ class WindTurbineFarmSimulator(object):
         self.raw_data = pd.read_csv('data/dataset_wind.csv.gz', compression="gzip", sep=',', low_memory=False).values
         
         # now create the virtual wind turbines
-        self.turbines = [WindTurbine(i, self.raw_data, self.__raw_data_callback__) for i in range(n_turbines)]
+        self.turbines = [WindTurbine(i, self.raw_data) for i in range(n_turbines)]
         self.data_buffer = [[] for i in range(n_turbines)]
         self.running = False
         self.agents = None
@@ -29,9 +29,12 @@ class WindTurbineFarmSimulator(object):
         self.colors = np.array([ 'r', 'g', 'y', 'b', 'r', 'g', 'b'])
         
         self.max_buffer_size = 500
+        for idx in range(n_turbines):
+            for j in range(self.max_buffer_size):
+                self.__read_next_turbine_sample__(idx)
 
         self.dashboard = widgets.Textarea(value='\n' * self.n_turbines, disabled=True,
-            layout={'border': '1px solid black', 'width': '850px', 'height': '85px'})
+            layout={'border': '1px solid black', 'width': '850px', 'height': '90px'})
 
     def __del__(self):
         self.halt()
@@ -49,22 +52,23 @@ class WindTurbineFarmSimulator(object):
         # we need to return the process in order to terminate it later
         return subprocess.Popen(cmd.split(' '), stdout=logs)
 
-    def __raw_data_callback__(self, turbine_id, data):
+    def __prep_turbine_sample__(self, turbine_id, data):
         vib_noise,rot_noise,vol_noise = self.is_noise_enabled(turbine_id)
         #np.array([8,9,10,7,  22, 5, 6]) # qX,qy,qz,qw  ,wind_seed_rps, rps, voltage        
-        if vib_noise: data[self.feature_ids[0:4]] = np.random.rand(4) * 10 # out of the radians range
-        if rot_noise: data[self.feature_ids[5]] = np.random.rand(1) * 10 # out of the normalized wind range
-        if vol_noise: data[self.feature_ids[6]] = int(np.random.rand(1)[0] * 1000) # out of the normalized voltage range
+        if vib_noise: data[self.feature_ids[0:4]] = np.random.rand(4) * 100 # out of the radians range
+        if rot_noise: data[self.feature_ids[5]] = np.random.rand(1) * 100 # out of the normalized wind range
+        if vol_noise: data[self.feature_ids[6]] = int(np.random.rand(1)[0] * 10000) # out of the normalized voltage range
 
         self.data_buffer[turbine_id].append(data)
         if len(self.data_buffer[turbine_id]) > self.max_buffer_size:
             del self.data_buffer[turbine_id][0]
+    
+    def __read_next_turbine_sample__(self, turbine_id):
+        self.__prep_turbine_sample__(turbine_id, self.turbines[turbine_id].read_next_sample() )
         
-        self.turbines[turbine_id].update_buffer_status(
-            int((len(self.data_buffer[turbine_id]) / self.max_buffer_size) * 100 )
-        )
-        self.update_dashboard(turbine_id, np.array(self.data_buffer[turbine_id]))
-        
+    def is_turbine_running(self, turbine_id):
+        return self.turbines[turbine_id].is_running()
+    
     def show(self):        
         return widgets.VBox([
             widgets.HBox([t.show() for t in self.turbines]),
@@ -72,6 +76,7 @@ class WindTurbineFarmSimulator(object):
         ])
 
     def update_dashboard(self, turbine_id, data):
+        if not self.turbines[turbine_id].is_running(): return
         lines = self.dashboard.value.split('\n')        
         features = np.mean(data[-50:,self.feature_ids], axis=0)
         tokens = ["%s: %0.3f" % (self.feature_names[i], features[i]) for i in range(len(features))]
@@ -105,9 +110,9 @@ class WindTurbineFarmSimulator(object):
     def get_num_turbines(self):
         return self.n_turbines
     
-    def get_raw_data(self, turbine_id):
+    def get_raw_data(self, turbine_id):        
         assert(turbine_id >= 0 and turbine_id < len(self.data_buffer))
-        
+        self.__read_next_turbine_sample__(turbine_id)
         return self.data_buffer[turbine_id]
     
     def detected_anomalies(self, turbine_id, values, anomalies):

@@ -15,7 +15,7 @@ So, the Data Scientist builds the model and prepares a deployment package with S
 
 Here you can see more details of the iterface/dashboard of the simulator. Click on the image to see a video:
 <p align="center">
-    <a href="https://spock.cloud/windturbine/wind_farm_simulator.mp4">
+    <a href="https://aws-ml-blog.s3.amazonaws.com/artifacts/monitor-manage-anomaly-detection-model-wind-turbine-fleet-sagemaker-neo/wind_farm_simulator.mp4">
         <img src="imgs/WindTurbineSimulator.png"></img>
     </a>
 </p>
@@ -26,7 +26,7 @@ Then, using SageMaker, we will transform this data, prepare, clean and format fo
 The workshop was configured as a [SageMaker Studio Project](https://docs.aws.amazon.com/sagemaker/latest/dg/sagemaker-projects.html). So you need to have an AWS account and then execute the following steps:
  1. Configure your own [SageMaker Studio Domain](https://docs.aws.amazon.com/sagemaker/latest/dg/gs-studio-onboard.html) if you don't have one;
  2. Get the name of the IAM role you created for SageMaker Studio;
- 3. With your SageMaker Studio Ready, deploy a new CloudFormation stack using this template: https://s3.amazonaws.com/spock.cloud/windturbine/deploy_sagemaker_project_template.yml. It will ask you the **Name, not the ARN** of the Role Studio is using - Curious about how to create your own SageMaker Studio Project Template? Take a look on [this link](https://docs.aws.amazon.com/sagemaker/latest/dg/sagemaker-projects-templates-custom.html);  
+ 3. With your SageMaker Studio Ready, deploy a new CloudFormation stack using this template: https://s3.amazonaws.com/aws-ml-blog/artifacts/monitor-manage-anomaly-detection-model-wind-turbine-fleet-sagemaker-neo/sagemaker_project.yml. It will ask you the **Name, not the ARN** of the Role Studio is using - Curious about how to create your own SageMaker Studio Project Template? Take a look on [this link](https://docs.aws.amazon.com/sagemaker/latest/dg/sagemaker-projects-templates-custom.html);  
     **Make sure you marked the IAM Acknowledge checkbox before creating your Stack** ![Ack](imgs/cloudformation_ack.png)
  5. The previous step will create a new SageMaker Project template. Now open SageMaker Studio, go to "Components and registries" (left menu: the icon seems like a rotated triangle)
      1. Click on the button **Create Project**;

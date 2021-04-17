@@ -203,8 +203,8 @@ Resources:
       RepositoryDescription: !Sub Infrastructure as code for the Project ${SageMakerProjectName}
       Code:
         S3:
-          Bucket: spock.cloud
-          Key: windturbine/artifacts/wind_turbine_farm_v1.0.zip
+          Bucket: aws-ml-blog
+          Key: artifacts/monitor-manage-anomaly-detection-model-wind-turbine-fleet-sagemaker-neo/wind_turbine_farm_v1.0.zip
         BranchName: main
 
   InfraSetupBuildProject:

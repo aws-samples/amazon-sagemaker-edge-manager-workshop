@@ -31,7 +31,7 @@ Resources:
         - Description: "SageMaker Project template for the Edge Manager workshop"
           DisableTemplateValidation: false
           Info: 
-            LoadTemplateFromURL: "https://s3.amazonaws.com/spock.cloud/windturbine/sagemaker_project.yml"
+            LoadTemplateFromURL: "https://s3.amazonaws.com/aws-ml-blog/artifacts/monitor-manage-anomaly-detection-model-wind-turbine-fleet-sagemaker-neo/sagemaker_project.yml"
       Tags:
         - Key: sagemaker:studio-visibility
           Value: true
@@ -124,7 +124,7 @@ Resources:
             Action:
             - "s3:GetObject"
             Resource:
-            - "arn:aws:s3:::spock.cloud/windturbine/*" 
+            - "arn:aws:s3:::aws-ml-blog/artifacts/monitor-manage-anomaly-detection-model-wind-turbine-fleet-sagemaker-neo/*" 
           - Effect: Allow
             Action:
             - "sagemaker:CreateDeviceFleet"

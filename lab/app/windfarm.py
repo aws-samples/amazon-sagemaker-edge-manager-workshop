@@ -138,42 +138,47 @@ class WindTurbineFarm(object):
         """
         while self.running:
             # for each turbine, check the buffer
-            for idx in range(self.n_turbines):
-                buffer = self.simulator.get_raw_data(idx)
-                if len(buffer) >= self.min_num_samples:
-                    # create a copy & prep the data
-                    data = self.__data_prep__(idx, np.array(buffer) )
+            start_time = time.time()
+            for idx in range(self.n_turbines): 
+                if self.simulator.is_turbine_running(idx):
+                    buffer = self.simulator.get_raw_data(idx)
+                    if len(buffer) >= self.min_num_samples:
+                        self.simulator.update_dashboard(idx, np.array(buffer))
+                        # create a copy & prep the data
+                        data = self.__data_prep__(idx, np.array(buffer) )
+                        
+                        if not self.edge_agents[idx].is_model_loaded(self.model_meta[idx]['model_name']):
+                            self.simulator.update_label(idx, 'Model not loaded')
+                            continue
+                        
+                        # denoise
+                        data = np.array([self.__wavelet_denoise__(data[:,i], 'db6', self.raw_std[i]) for i in range(self.n_features)])
+                        data = data.transpose((1,0))
 
-                    # denoise
-                    data = np.array([self.__wavelet_denoise__(data[:,i], 'db6', self.raw_std[i]) for i in range(self.n_features)])
-                    data = data.transpose((1,0))
+                        # normalize                     
+                        data -= self.mean
+                        data /= self.std
+                        data = data[-(self.TIME_STEPS+self.STEP):]
 
-                    # normalize                     
-                    data -= self.mean
-                    data /= self.std
-                    data = data[-(self.TIME_STEPS+self.STEP):]
+                        # create the dataset and reshape it
+                        x = self.__create_dataset__(data, self.TIME_STEPS, self.STEP)                    
+                        x = np.transpose(x, (0, 2, 1)).reshape(x.shape[0], self.n_features, 10, 10)
 
-                    # create the dataset and reshape it
-                    x = self.__create_dataset__(data, self.TIME_STEPS, self.STEP)                    
-                    x = np.transpose(x, (0, 2, 1)).reshape(x.shape[0], self.n_features, 10, 10)
+                        # run the model                    
+                        p = self.edge_agents[idx].predict(self.model_meta[idx]['model_name'], x)
+                        if p is not None:
+                            a = x.reshape(x.shape[0], self.n_features, 100).transpose((0,2,1))
+                            b = p.reshape(p.shape[0], self.n_features, 100).transpose((0,2,1))
+                            # check the anomalies
+                            pred_mae_loss = np.mean(np.abs(b - a), axis=1).transpose((1,0))
 
-                    # run the model
-                    p = self.edge_agents[idx].predict(self.model_meta[idx]['model_name'], x)
-                    if p is not None:
+                            values = np.mean(pred_mae_loss, axis=1)
+                            anomalies = (values > self.thresholds)
 
-                        a = x.reshape(x.shape[0], self.n_features, 100).transpose((0,2,1))
-                        b = p.reshape(p.shape[0], self.n_features, 100).transpose((0,2,1))
-                        # check the anomalies
-                        pred_mae_loss = np.mean(np.abs(b - a), axis=1).transpose((1,0))
-
-                        values = np.mean(pred_mae_loss, axis=1)
-                        anomalies = (values > self.thresholds)
-
-                        self.simulator.detected_anomalies(idx, values, anomalies)
-                    else:
-                        # there is no model                        
-                        time.sleep(1)
-                    time.sleep(0.5)
+                            self.simulator.detected_anomalies(idx, values, anomalies)
+                        
+            elapsed_time = time.time() - start_time
+            time.sleep(0.5-elapsed_time)
 
     def notify_model_update(self, device_id, model_name, model_version):
         logging.info("Loading model %s version %f in device %d" % ( model_name, model_version, device_id))
