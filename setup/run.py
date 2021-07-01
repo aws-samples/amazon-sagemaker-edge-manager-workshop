@@ -62,7 +62,7 @@ def setup_agent(agent_id, args, thing_group_name, thing_group_arn):
     
     logger.info("Finally, let's create the agent config file")
     agent_params = {
-        "sagemaker_edge_core_device_uuid": device_prefix % agent_id,
+        "sagemaker_edge_core_device_name": device_prefix % agent_id,
         "sagemaker_edge_core_device_fleet_name": fleet_name,
         "sagemaker_edge_core_capture_data_buffer_size": 30,
         "sagemaker_edge_core_capture_data_batch_size": 10,
