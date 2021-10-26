@@ -5,6 +5,18 @@
 ----
 In **this workshop** you will create an end-to-end solution that shows how to detect anomalies in the components of wind turbines. We'll use Amazon SageMaker to prepare a Machine Learning (ML) model and Amazon SageMaker Edge Manager to deploy and run this model to an edge device (small computer).
 
+This workshop has following labs:    
+  - [00-Warmup](lab/00-Warmup): This shows a quick overview of the end to end workshop. This is optional if you running all the labs in the workshop.    
+  - [01-Data-Visualization](lab/01-Data-Visualization): This lab performs the required pre-processing on the raw turbine data in order to train an anomaly detection model.    
+  - [02-Training](lab/02-Training): This lab trains an auto encoder anomaly detector ML model using a SageMaker Pipeline.
+  - [03-Package-Deploy](lab/03-Package-Deploy): This lab shows how to compile, package and deploy your model and the inference application(detector). It shows two ways of deploying the model and the inference application. The workshop moderator and the audience need to choose one of the option:       
+      - [Using IoT Jobs](lab/03-Package-Deploy/iot-jobs)    
+      - [Using Greengrass V2](lab/03-Package-Deploy/greengrass-v2)    
+  - [04-Run-Fleet](lab/04-Run-Fleet): This lab shows how to run the simulator creating and running 5 virtual wind turbines. It shows two ways of running the simulator and turbines.Here the selection should be the same as made in the previous lab. Either using:       
+      - [Using IoT Jobs](lab/04-Run-Fleet/iot-jobs) OR        
+      - [Using Greengrass V2](lab/04-Run-Fleet/greengrass-v2)    
+
+
 A real Wind Energy Farm can have hundreds or thousands of turbines. Each turbine costs millions of dollars. The maintenance cost is also high and requires very specialized skills. So, what if you could connect a small computer (edge device) to the sensors of these turbines and run on it some Machine Learning (ML) models that can predict anomalies/failures in real-time? A local application could keep monitoring the ML predictions and run contingency procedures as soon as an anomaly is detected, for instance: activate a break or disconnect the generator from the grid. This solution can also send messages to the closest operator and report the device performance to the cloud, for posterior analysis.
 
 We'll use simple simulator (programed in Python) to stream some raw data, collected by the sensors installed in a 3D printed mini wind turbine. Bellow, you can see the macro architecture of the solution.
@@ -26,7 +38,11 @@ Then, using SageMaker, we will transform this data, prepare, clean and format fo
 The workshop was configured as a [SageMaker Studio Project](https://docs.aws.amazon.com/sagemaker/latest/dg/sagemaker-projects.html). So you need to have an AWS account and then execute the following steps:
  1. Configure your own [SageMaker Studio Domain](https://docs.aws.amazon.com/sagemaker/latest/dg/gs-studio-onboard.html) if you don't have one;
  2. Get the name of the IAM role you created for SageMaker Studio;
- 3. With your SageMaker Studio Ready, deploy a new CloudFormation stack using this template: https://s3.amazonaws.com/aws-ml-blog/artifacts/monitor-manage-anomaly-detection-model-wind-turbine-fleet-sagemaker-neo/deploy_sagemaker_project_template.yml. It will ask you the **Name, not the ARN** of the Role Studio is using - Curious about how to create your own SageMaker Studio Project Template? Take a look on [this link](https://docs.aws.amazon.com/sagemaker/latest/dg/sagemaker-projects-templates-custom.html);  
+ 3. With your SageMaker Studio Ready, deploy a new CloudFormation stack by clicking on the **Launch Stack** button below: 
+ 
+ [![Launch Stack](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://console.aws.amazon.com/cloudformation/home#/stacks/new?stackName=sagemaker-edge-manager-workshop&templateURL=https://s3.amazonaws.com/ee-assets-prod-us-east-1/modules/23c647abc48b4d8292d5da1af579c199/v1/deploy_sagemaker_project_template.yml)  
+ 
+It will ask you the **Name, not the ARN** of the Role Studio is using - Curious about how to create your own SageMaker Studio Project Template? Take a look on [this link](https://docs.aws.amazon.com/sagemaker/latest/dg/sagemaker-projects-templates-custom.html);  
     **Make sure you marked the IAM Acknowledge checkbox before creating your Stack** ![Ack](imgs/cloudformation_ack.png)
  5. The previous step will create a new SageMaker Project template. Now open SageMaker Studio, go to "Components and registries" (left menu: the icon seems like a rotated triangle)
      1. Click on the button **Create Project**;

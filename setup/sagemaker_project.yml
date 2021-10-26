@@ -43,10 +43,7 @@ Resources:
             Statement:
             - Effect: Allow
               Action:
-              - 's3:GetObject'
-              - 's3:PutObject'
-              - 's3:ListBucket'
-              - 's3:GetBucketLocation'
+              - 's3:*'
               Resource: 
               - !GetAtt WindTurbineFarmBucket.Arn
               - !Join [ '/', [ !GetAtt WindTurbineFarmBucket.Arn, '*' ] ]
@@ -63,7 +60,7 @@ Resources:
               - 'iot:TagResource'
               - 'iot:ListTagsForResource'
               Resource:
-              - !Sub "arn:aws:iot:${AWS::Region}:${AWS::AccountId}:rolealias/SageMakerEdge*"
+              - !Sub "arn:aws:iot:${AWS::Region}:${AWS::AccountId}:rolealias/SageMaker*"
             - Effect: Allow
               Action:
               - 'iam:GetRole'
@@ -109,19 +106,26 @@ Resources:
             - "sagemaker:DeregisterDevices"
             - "sagemaker:RegisterDevices"
             - "sagemaker:DescribeDevice"
+            - "sagemaker:DescribeModelPackageGroup"
+            - "sagemaker:CreateModelPackageGroup"
             Resource:
             - !Sub "arn:aws:sagemaker:*:${AWS::AccountId}:device-fleet/*"
+            - !Sub "arn:aws:sagemaker:*:${AWS::AccountId}:model-package-group/*"
           - Effect: Allow
             Action:
-            - "s3:ListBucket"
+            - "s3:*"
             Resource:
-            - "arn:aws:s3:::sagemaker-*"
+            - "arn:aws:s3:::*"
           - Effect: Allow
             Action:
-            - "codecommit:GitPull"
-            - "codecommit:GitPush"
+            - "codecommit:*"
+            - "codebuild:*"
+            - "codedeploy:*"
+            - "codepipeline:*"
+            - "logs:*"
             Resource:
             - !GetAtt CodeRepository.Arn
+            - "*"
       PolicyName: !Sub AdditionalDeployment-${SageMakerProjectId}
       Roles:
         - AmazonSageMakerServiceCatalogProductsUseRole 
@@ -137,7 +141,7 @@ Resources:
           Action:
           - iot:Connect
           Resource:
-          - !Sub "arn:aws:iot:${AWS::Region}:${AWS::AccountId}:client/*"
+          - !Sub "arn:aws:iot:${AWS::Region}:${AWS::AccountId}:*"
         - Effect: Allow
           Action:
           - iot:Publish
@@ -145,6 +149,7 @@ Resources:
           Resource:
           - !Sub "arn:aws:iot:${AWS::Region}:${AWS::AccountId}:topic/wind-turbine/*"
           - !Sub "arn:aws:iot:${AWS::Region}:${AWS::AccountId}:topic/$aws/*"
+          - !Sub "arn:aws:iot:${AWS::Region}:${AWS::AccountId}:wind-turbine/*"
         - Effect: Allow
           Action:
           - iot:Subscribe
@@ -152,6 +157,7 @@ Resources:
           - !Sub "arn:aws:iot:${AWS::Region}:${AWS::AccountId}:topicfilter/wind-turbine/*"
           - !Sub "arn:aws:iot:${AWS::Region}:${AWS::AccountId}:topicfilter/$aws/*"
           - !Sub "arn:aws:iot:${AWS::Region}:${AWS::AccountId}:topic/$aws/*"
+          - !Sub "arn:aws:iot:${AWS::Region}:${AWS::AccountId}:wind-turbine/*"
         - Effect: Allow
           Action:
           - iot:UpdateThingShadow
@@ -203,8 +209,8 @@ Resources:
       RepositoryDescription: !Sub Infrastructure as code for the Project ${SageMakerProjectName}
       Code:
         S3:
-          Bucket: aws-ml-blog
-          Key: artifacts/monitor-manage-anomaly-detection-model-wind-turbine-fleet-sagemaker-neo/wind_turbine_farm_v1.0.zip
+          Bucket: ee-assets-prod-us-east-1
+          Key: modules/23c647abc48b4d8292d5da1af579c199/v1/wind_turbine_farm_v1.0.zip
         BranchName: main
 
   InfraSetupBuildProject:

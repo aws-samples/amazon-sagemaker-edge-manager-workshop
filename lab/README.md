@@ -8,7 +8,7 @@ This module is divided in four exercises: Warm up, Data Visualization, Model Bui
   5. Double-click on the directory **notebooks** and you will see the following exercices:
 
 ## 0/4 - Warm up
-<a href="00 - Warmup.ipynb">Notebook</a>: In this notebook you will learn how to prepare a minimalist environment to run SageMaker Edge Agent and invoke its API using Python3;
+<a href="00 - Warmup.ipynb">Notebook</a>: In this notebook you will learn how to prepare a minimalist environment to run SageMaker Edge Agent and invoke its API using Python3; (Select SageMaker Studio Kernel: Data Science)
 
 <p align="center">
     <img src="../imgs/EdgeManagerWorkshop_MinimalistArchitecture.png"></a>

@@ -22,7 +22,7 @@ phases:
       - git config --global credential.UseHttpPath true
       - git clone https://git-codecommit.${AWS_REGION}.amazonaws.com/v1/repos/sagemaker-wind-turbine-farm-${SAGEMAKER_PROJECT_ID}
       - cd sagemaker-wind-turbine-farm-${SAGEMAKER_PROJECT_ID}
-      - REPLACE=$(grep "<<PROJECT_NAME>>" lab/*.ipynb -q && echo "TRUE" || echo "FALSE")
+      - REPLACE=$(grep -R --include \*.ipynb "<<PROJECT_NAME>>" lab -q && echo "TRUE" || echo "FALSE")
       - echo "Is there any placeholder to replace? $REPLACE"
-      - if [ "$REPLACE" == "TRUE" ]; then sed -i "s#<<PROJECT_NAME>>#${SAGEMAKER_PROJECT_NAME}#g" lab/*.ipynb && git commit -m ' project name' lab/*.ipynb && git push; fi
+      - if [ "$REPLACE" == "TRUE" ]; then find . -type f -name "*.ipynb" -exec sed -i "s#<<PROJECT_NAME>>#${SAGEMAKER_PROJECT_NAME}#g" {} + && git add lab/*.ipynb && git commit -m ' project name' lab/*.ipynb && git push; fi
       - cd ..
