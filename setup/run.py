@@ -18,7 +18,6 @@ sm_client = boto3.client('sagemaker')
 s3_client = boto3.client('s3')
 
 def setup_agent(agent_id, args, thing_group_name, thing_group_arn):
-    device_prefix = 'edge-device-wind-turbine-%011d' # it needs to have 36 chars
     policy_name='WindTurbineFarmPolicy-%s' % args.sagemaker_project_id
     base="agent/certificates/iot/edge_device_%d_%s.pem"
     fleet_name = 'wind-turbine-farm-%s' % args.sagemaker_project_id
@@ -28,8 +27,8 @@ def setup_agent(agent_id, args, thing_group_name, thing_group_arn):
 
     # register the device in the fleet    
     # the device name needs to have 36 chars
-    dev_name = "edge-device-wind-turbine-%011d" % agent_id
-    dev = [{'DeviceName': dev_name, 'IotThingName': "edge-device-%d" % agent_id}]    
+    dev_name = "edge-device-%d" % agent_id
+    dev = [{'DeviceName': dev_name, 'IotThingName': dev_name}]    
     try:        
         sm_client.describe_device(DeviceFleetName=fleet_name, DeviceName=dev_name)
         logger.info("Device was already registered on SageMaker Edge Manager")
@@ -62,7 +61,7 @@ def setup_agent(agent_id, args, thing_group_name, thing_group_arn):
     
     logger.info("Finally, let's create the agent config file")
     agent_params = {
-        "sagemaker_edge_core_device_name": device_prefix % agent_id,
+        "sagemaker_edge_core_device_name": dev_name,
         "sagemaker_edge_core_device_fleet_name": fleet_name,
         "sagemaker_edge_core_capture_data_buffer_size": 30,
         "sagemaker_edge_core_capture_data_batch_size": 10,

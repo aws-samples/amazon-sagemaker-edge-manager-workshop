@@ -20,7 +20,7 @@ Resources:
       Description: "Creates a new portfolio with a template for SagemakerProjects"
       DisplayName: !Ref PortfolioName
       ProviderName: "Edge Manager Workshop"
-  
+
   SageMakerEdgeManagerWorkshop:
     Type: AWS::ServiceCatalog::CloudFormationProduct
     Properties: 
@@ -30,8 +30,8 @@ Resources:
       ProvisioningArtifactParameters: 
         - Description: "SageMaker Project template for the Edge Manager workshop"
           DisableTemplateValidation: false
-          Info: 
-            LoadTemplateFromURL: "https://s3.amazonaws.com/aws-ml-blog/artifacts/monitor-manage-anomaly-detection-model-wind-turbine-fleet-sagemaker-neo/sagemaker_project.yml"
+          Info:
+            LoadTemplateFromURL: "https://s3.amazonaws.com/ee-assets-prod-us-east-1/modules/23c647abc48b4d8292d5da1af579c199/v1/sagemaker_project.yml"
       Tags:
         - Key: sagemaker:studio-visibility
           Value: true
@@ -84,7 +84,16 @@ Resources:
             - "iot:DetachPolicy"
             - "iot:DeleteRoleAlias"
             - "iot:DeleteThingGroup"
+            - "iot:DescribeThingGroup"
+            - "iot:CancelJob"
+            - "iot:ListThingGroups"
             - "sts:GetCallerIdentity"
+            - "greengrass:CreateComponentVersion"
+            - "greengrass:CreateDeployment"
+            - "greengrass:DeleteCoreDevice"
+            - "iam:*"
+            - "greengrass:*"
+            - "iot:*"
             Resource: 
               - "*"
           - Effect: Allow
@@ -124,12 +133,13 @@ Resources:
             Action:
             - "s3:GetObject"
             Resource:
-            - "arn:aws:s3:::aws-ml-blog/artifacts/monitor-manage-anomaly-detection-model-wind-turbine-fleet-sagemaker-neo/*" 
+            - "arn:aws:s3:::ee-assets-prod-us-east-1/modules/23c647abc48b4d8292d5da1af579c199/v1/*"
           - Effect: Allow
             Action:
             - "sagemaker:CreateDeviceFleet"
             - "sagemaker:DeleteDeviceFleet"
             - "sagemaker:DescribeDeviceFleet"
+            - "sagemaker:DeleteDeviceFleet"
             Resource:
             - !Sub "arn:aws:sagemaker:*:${AWS::AccountId}:device-fleet/wind-turbine-farm*" 
           - Effect: Allow
@@ -146,6 +156,14 @@ Resources:
             - "iot:DeletePolicy"
             Resource:
             - !Sub "arn:aws:iot:*:${AWS::AccountId}:policy/WindTurbineFarmPolicy*"
+          - Effect: Allow
+            Action:
+            - "codecommit:*"
+            - "codebuild:*"
+            - "codedeploy:*"
+            - "codepipeline:*"
+            Resource: 
+              - "*"
       PolicyName: !Sub SageMakerEdgeManagerWindTurbineAdditional
       Roles:
         - AmazonSageMakerServiceCatalogProductsLaunchRole
