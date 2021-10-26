@@ -1,0 +1,588 @@
+Parameters:
+  AmazonSageMakerEdgeDeviceFleetPolicyArn:
+    Type: String
+    Description: 'ARN of the IAM Managed Policy AmazonSageMakerEdgeDeviceFleetPolicyArn to add to the TES role'
+    Default: arn:aws:iam::aws:policy/service-role/AmazonSageMakerEdgeDeviceFleetPolicy
+  
+  AMI:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/canonical/ubuntu/server/20.04/stable/current/amd64/hvm/ebs-gp2/ami-id
+
+  ThingGroupName:
+    Type: String
+    Description: IoT Thing Group Name of the Wind Turbines
+
+  
+  SageMakerStudioRoleName:
+    Type: String
+    Description: Name of the role used by SageMaker Studio
+    MinLength: 1
+    AllowedPattern: ^[a-zA-Z](-*[a-zA-Z0-9])*
+
+
+Resources:
+#Start - VPC for IoT edge devices
+  ggvpcF5DD5645:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 192.168.0.0/16
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      InstanceTenancy: default
+      Tags:
+        - Key: Name
+          Value: WindturbinesStack/gg-vpc
+
+  ggvpcgreengrasssubnetSubnet1SubnetBE4B0D57:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 192.168.0.0/24
+      VpcId:
+        Ref: ggvpcF5DD5645
+      AvailabilityZone:
+        Fn::Select:
+          - 0
+          - Fn::GetAZs: ""
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: aws-cdk:subnet-name
+          Value: greengrass-subnet
+        - Key: aws-cdk:subnet-type
+          Value: Public
+        - Key: Name
+          Value: WindturbinesStack/gg-vpc/greengrass-subnetSubnet1
+
+  ggvpcgreengrasssubnetSubnet1RouteTable0EB37DF6:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: ggvpcF5DD5645
+      Tags:
+        - Key: Name
+          Value: WindturbinesStack/gg-vpc/greengrass-subnetSubnet1
+ 
+  ggvpcgreengrasssubnetSubnet1RouteTableAssociationCEA386B4:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: ggvpcgreengrasssubnetSubnet1RouteTable0EB37DF6
+      SubnetId:
+        Ref: ggvpcgreengrasssubnetSubnet1SubnetBE4B0D57
+
+  ggvpcgreengrasssubnetSubnet1DefaultRoute2532DD82:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId:
+        Ref: ggvpcgreengrasssubnetSubnet1RouteTable0EB37DF6
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId:
+        Ref: ggvpcIGW428E1FB2
+    DependsOn:
+      - ggvpcVPCGW460DCDB5
+ 
+  ggvpcIGW428E1FB2:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: WindturbinesStack/gg-vpc
+
+  ggvpcVPCGW460DCDB5:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId:
+        Ref: ggvpcF5DD5645
+      InternetGatewayId:
+        Ref: ggvpcIGW428E1FB2
+
+#End - VPC for IoT edge devices
+
+#Start - TES role
+  Greengrassv2TesRoleFA89CD28:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: credentials.iot.amazonaws.com
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: sagemaker.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Ref: ggtesmanagedpolicy2057D301
+        - Ref: AmazonSageMakerEdgeDeviceFleetPolicyArn
+      RoleName: SageMaker-WindturbinesStackTESRole
+
+#End - TES role
+
+#Start - TES Policy
+  ggtesmanagedpolicy2057D301:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - iot:DescribeCertificate
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+              - logs:DescribeLogStreams
+              - iot:Connect
+              - iot:Publish
+              - iot:Subscribe
+              - iot:Receive
+              - s3:*
+              - greengrass:CreateDeployment
+              - greengrass:CreateComponentVersion
+              - greengrass:DescribeComponent
+            Effect: Allow
+            Resource: "*"
+        Version: "2012-10-17"
+      Description: ""
+      ManagedPolicyName: WindturbinesStackTESRoleAccess
+      Path: /
+
+#End - TES :policy
+
+#Start - ec2 instance policy
+  GGPolicy1C59DD0A:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - iot:AddThingToThingGroup
+              - iot:AttachPolicy
+              - iot:AttachThingPrincipal
+              - iot:CreateKeysAndCertificate
+              - iot:CreatePolicy
+              - iot:CreateRoleAlias
+              - iot:CreateThing
+              - iot:CreateThingGroup
+              - iot:DescribeEndpoint
+              - iot:DescribeRoleAlias
+              - iot:DescribeThingGroup
+              - iot:GetPolicy  
+              - sts:GetCallerIdentity
+              - iam:GetPolicy
+              - iam:GetRole
+              - iam:CreateRole
+              - iam:PassRole
+              - iam:CreatePolicy
+              - iam:AttachRolePolicy
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - greengrass:CreateDeployment
+              - greengrass:CreateComponentVersion
+              - greengrass:DescribeComponent
+              - iot:CancelJob
+              - iot:CreateJob
+              - iot:DeleteThingShadow
+              - iot:DescribeJob
+              - iot:DescribeThing
+              - iot:DescribeThingGroup
+              - iot:GetThingShadow
+              - iot:UpdateJob
+              - iot:UpdateThingShadow
+              - s3:*
+            Effect: Allow
+            Resource: "*"
+        Version: "2012-10-17"
+      PolicyName: GGPolicy1C59DD0A
+      Roles:
+        - Ref: ec2instancerole
+
+#End - ec2 instance policy
+
+#Ec2 passrole policy - to attach to sagemaker execution role
+  EC2PassRolePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - iam:PassRole
+            Effect: Allow
+            Resource: !Sub "arn:aws:iam::${AWS::AccountId}:role/ec2instancerole"
+      PolicyName: EC2PassRolePolicy
+      Roles:
+        - Ref: SageMakerStudioRoleName
+          
+#Start - ec2instance role
+  ec2instancerole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                Fn::Join:
+                  - ""
+                  - - ec2.
+                    - Ref: AWS::URLSuffix
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AmazonEC2RoleforSSM
+      RoleName: ec2instancerole
+
+#End - ec2instance role
+
+#Start - edge device 0
+  edgedevice0SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: WindturbinesStack/edge-device-0/InstanceSecurityGroup
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: "-1"
+      Tags:
+        - Key: Name
+          Value: edge-device-0
+      VpcId:
+        Ref: ggvpcF5DD5645
+
+  edgedevice0InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - Ref: ec2instancerole
+
+  edgedevice0:
+    Type: AWS::EC2::Instance
+    Properties:
+      AvailabilityZone:
+        Fn::Select:
+          - 0
+          - Fn::GetAZs: ""
+      IamInstanceProfile:
+        Ref: edgedevice0InstanceProfile
+      ImageId:
+        Ref: AMI
+      InstanceType: t3.micro
+      SecurityGroupIds:
+        - Fn::GetAtt:
+            - edgedevice0SecurityGroup
+            - GroupId
+      SubnetId:
+        Ref: ggvpcgreengrasssubnetSubnet1SubnetBE4B0D57
+      Tags:
+        - Key: Name
+          Value: edge-device-0
+      UserData:
+        Fn::Base64: !Sub "#!/bin/bash
+          
+          wget -O- https://apt.corretto.aws/corretto.key | apt-key add - 
+          
+          add-apt-repository 'deb https://apt.corretto.aws stable main'
+           
+          apt-get update; apt-get install -y java-11-amazon-corretto-jdk
+          
+          apt install unzip -y
+          
+          apt install python3-pip -y
+          
+          apt-get install python3.8-venv -y
+
+          ec2_region=$(curl http://169.254.169.254/latest/meta-data/placement/region)
+
+          curl -s https://d2s8p88vqu9w66.cloudfront.net/releases/greengrass-nucleus-latest.zip > greengrass-nucleus-latest.zip  && unzip greengrass-nucleus-latest.zip -d GreengrassCore
+
+          java -Droot=\"/greengrass/v2\" -Dlog.store=FILE -jar ./GreengrassCore/lib/Greengrass.jar --aws-region $ec2_region  --thing-name edge-device-0 --thing-group-name ${ThingGroupName}  --tes-role-name SageMaker-WindturbinesStackTESRole --tes-role-alias-name SageMaker-WindturbinesStackTESRoleAlias  --component-default-user ggc_user:ggc_group --provision true --setup-system-service true --deploy-dev-tools true
+
+          \        "
+
+    DependsOn:
+      - ec2instancerole
+
+#End - edge device 0
+
+#Start - edge device 1
+  edgedevice1SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: WindturbinesStack/edge-device-1/InstanceSecurityGroup
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: "-1"
+      Tags:
+        - Key: Name
+          Value: edge-device-1
+      VpcId:
+        Ref: ggvpcF5DD5645
+
+  edgedevice1InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - Ref: ec2instancerole
+
+  edgedevice1:
+    Type: AWS::EC2::Instance
+    Properties:
+      AvailabilityZone:
+        Fn::Select:
+          - 0
+          - Fn::GetAZs: ""
+      IamInstanceProfile:
+        Ref: edgedevice1InstanceProfile
+      ImageId:
+        Ref: AMI
+      InstanceType: t3.micro
+      SecurityGroupIds:
+        - Fn::GetAtt:
+            - edgedevice1SecurityGroup
+            - GroupId
+      SubnetId:
+        Ref: ggvpcgreengrasssubnetSubnet1SubnetBE4B0D57
+      Tags:
+        - Key: Name
+          Value: edge-device-1
+      UserData:
+        Fn::Base64: !Sub "#!/bin/bash
+        
+          wget -O- https://apt.corretto.aws/corretto.key | apt-key add - 
+          
+          add-apt-repository 'deb https://apt.corretto.aws stable main'
+           
+          apt-get update; apt-get install -y java-11-amazon-corretto-jdk
+          
+          apt install unzip -y
+          
+          apt install python3-pip -y
+          
+          apt-get install python3.8-venv -y
+
+          ec2_region=$(curl http://169.254.169.254/latest/meta-data/placement/region)
+
+          curl -s https://d2s8p88vqu9w66.cloudfront.net/releases/greengrass-nucleus-latest.zip > greengrass-nucleus-latest.zip  && unzip greengrass-nucleus-latest.zip -d GreengrassCore
+
+          java -Droot=\"/greengrass/v2\" -Dlog.store=FILE -jar ./GreengrassCore/lib/Greengrass.jar --aws-region $ec2_region  --thing-name edge-device-1 --thing-group-name ${ThingGroupName}   --tes-role-name SageMaker-WindturbinesStackTESRole --tes-role-alias-name SageMaker-WindturbinesStackTESRoleAlias  --component-default-user ggc_user:ggc_group --provision true --setup-system-service true --deploy-dev-tools true
+
+          \        "
+
+    DependsOn:
+      - ec2instancerole
+
+#End - edge device 1
+
+#Start - edge device 2
+  edgedevice2SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: WindturbinesStack/edge-device-2/InstanceSecurityGroup
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: "-1"
+      Tags:
+        - Key: Name
+          Value: edge-device-2
+      VpcId:
+        Ref: ggvpcF5DD5645
+ 
+  edgedevice2InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - Ref: ec2instancerole
+
+  edgedevice2:
+    Type: AWS::EC2::Instance
+    Properties:
+      AvailabilityZone:
+        Fn::Select:
+          - 0
+          - Fn::GetAZs: ""
+      IamInstanceProfile:
+        Ref: edgedevice2InstanceProfile
+      ImageId:
+        Ref: AMI
+      InstanceType: t3.micro
+      SecurityGroupIds:
+        - Fn::GetAtt:
+            - edgedevice2SecurityGroup
+            - GroupId
+      SubnetId:
+        Ref: ggvpcgreengrasssubnetSubnet1SubnetBE4B0D57
+      Tags:
+        - Key: Name
+          Value: edge-device-2
+      UserData:
+        Fn::Base64: !Sub "#!/bin/bash
+          
+          wget -O- https://apt.corretto.aws/corretto.key | apt-key add - 
+          
+          add-apt-repository 'deb https://apt.corretto.aws stable main'
+           
+          apt-get update; apt-get install -y java-11-amazon-corretto-jdk
+          
+          apt install unzip -y
+          
+          apt install python3-pip -y
+          
+          apt-get install python3.8-venv -y
+
+          ec2_region=$(curl http://169.254.169.254/latest/meta-data/placement/region)
+
+          curl -s https://d2s8p88vqu9w66.cloudfront.net/releases/greengrass-nucleus-latest.zip > greengrass-nucleus-latest.zip  && unzip greengrass-nucleus-latest.zip -d GreengrassCore
+
+          java -Droot=\"/greengrass/v2\" -Dlog.store=FILE -jar ./GreengrassCore/lib/Greengrass.jar --aws-region $ec2_region  --thing-name edge-device-2 --thing-group-name ${ThingGroupName}   --tes-role-name SageMaker-WindturbinesStackTESRole --tes-role-alias-name SageMaker-WindturbinesStackTESRoleAlias  --component-default-user ggc_user:ggc_group --provision true --setup-system-service true --deploy-dev-tools true
+
+          \        "
+
+    DependsOn:
+      - ec2instancerole
+
+#End - edge device 
+
+#Start - edge device 3
+  edgedevice3SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: WindturbinesStack/edge-device-3/InstanceSecurityGroup
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: "-1"
+      Tags:
+        - Key: Name
+          Value: edge-device-3
+      VpcId:
+        Ref: ggvpcF5DD5645
+
+  edgedevice3InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - Ref: ec2instancerole
+ 
+  edgedevice3:
+    Type: AWS::EC2::Instance
+    Properties:
+      AvailabilityZone:
+        Fn::Select:
+          - 0
+          - Fn::GetAZs: ""
+      IamInstanceProfile:
+        Ref: edgedevice3InstanceProfile
+      ImageId:
+        Ref: AMI
+      InstanceType: t3.micro
+      SecurityGroupIds:
+        - Fn::GetAtt:
+            - edgedevice3SecurityGroup
+            - GroupId
+      SubnetId:
+        Ref: ggvpcgreengrasssubnetSubnet1SubnetBE4B0D57
+      Tags:
+        - Key: Name
+          Value: edge-device-3
+      UserData:
+        Fn::Base64: !Sub "#!/bin/bash
+          
+          wget -O- https://apt.corretto.aws/corretto.key | apt-key add - 
+          
+          add-apt-repository 'deb https://apt.corretto.aws stable main'
+           
+          apt-get update; apt-get install -y java-11-amazon-corretto-jdk
+          
+          apt install unzip -y
+          
+          apt install python3-pip -y
+          
+          apt-get install python3.8-venv -y
+
+          ec2_region=$(curl http://169.254.169.254/latest/meta-data/placement/region)
+
+          curl -s https://d2s8p88vqu9w66.cloudfront.net/releases/greengrass-nucleus-latest.zip > greengrass-nucleus-latest.zip  && unzip greengrass-nucleus-latest.zip -d GreengrassCore
+
+          java -Droot=\"/greengrass/v2\" -Dlog.store=FILE -jar ./GreengrassCore/lib/Greengrass.jar --aws-region $ec2_region  --thing-name edge-device-3 --thing-group-name ${ThingGroupName}   --tes-role-name SageMaker-WindturbinesStackTESRole --tes-role-alias-name SageMaker-WindturbinesStackTESRoleAlias  --component-default-user ggc_user:ggc_group --provision true --setup-system-service true --deploy-dev-tools true
+
+          \        "
+
+    DependsOn:
+      - ec2instancerole
+
+#End - edge device 3
+
+#Start - edge device 4
+  edgedevice4SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: WindturbinesStack/edge-device-4/InstanceSecurityGroup
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: "-1"
+      Tags:
+        - Key: Name
+          Value: edge-device-4
+      VpcId:
+        Ref: ggvpcF5DD5645
+
+  edgedevice4InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - Ref: ec2instancerole
+
+  edgedevice4:
+    Type: AWS::EC2::Instance
+    Properties:
+      AvailabilityZone:
+        Fn::Select:
+          - 0
+          - Fn::GetAZs: ""
+      IamInstanceProfile:
+        Ref: edgedevice4InstanceProfile
+      ImageId:
+        Ref: AMI
+      InstanceType: t3.micro
+      SecurityGroupIds:
+        - Fn::GetAtt:
+            - edgedevice4SecurityGroup
+            - GroupId
+      SubnetId:
+        Ref: ggvpcgreengrasssubnetSubnet1SubnetBE4B0D57
+      Tags:
+        - Key: Name
+          Value: edge-device-4
+      UserData:
+        Fn::Base64: !Sub "#!/bin/bash
+          
+          wget -O- https://apt.corretto.aws/corretto.key | apt-key add - 
+          
+          add-apt-repository 'deb https://apt.corretto.aws stable main'
+           
+          apt-get update; apt-get install -y java-11-amazon-corretto-jdk
+          
+          apt install unzip -y
+          
+          apt install python3-pip -y
+          
+          apt-get install python3.8-venv -y
+
+          ec2_region=$(curl http://169.254.169.254/latest/meta-data/placement/region)
+
+          curl -s https://d2s8p88vqu9w66.cloudfront.net/releases/greengrass-nucleus-latest.zip > greengrass-nucleus-latest.zip  && unzip greengrass-nucleus-latest.zip -d GreengrassCore
+
+          java -Droot=\"/greengrass/v2\" -Dlog.store=FILE -jar ./GreengrassCore/lib/Greengrass.jar --aws-region $ec2_region  --thing-name edge-device-4 --thing-group-name ${ThingGroupName}   --tes-role-name SageMaker-WindturbinesStackTESRole --tes-role-alias-name SageMaker-WindturbinesStackTESRoleAlias  --component-default-user ggc_user:ggc_group --provision true --setup-system-service true --deploy-dev-tools true
+
+          \        "
+
+    DependsOn:
+      - ec2instancerole
+#End - edge device 4
