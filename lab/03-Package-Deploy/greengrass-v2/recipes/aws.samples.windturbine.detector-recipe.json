@@ -1,0 +1,58 @@
+{
+  "RecipeFormatVersion": "2020-01-25",
+  "ComponentName": "aws.samples.windturbine.detector",
+  "ComponentVersion": "1.0.0",
+  "ComponentDescription": "Detects anomalies for wind turbines",
+  "ComponentPublisher": "Amazon.com",
+  "ComponentConfiguration": {
+    "DefaultConfiguration": {
+      "accessControl": {
+        "aws.greengrass.ipc.mqttproxy": {
+          "policy_1": {
+            "policyDescription": "My policy",
+            "operations": [
+              "aws.greengrass#PublishToIoTCore",
+              "aws.greengrass#SubscribeToIoTCore"
+            ],
+            "resources": [
+              "*"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "ComponentDependencies": {
+    "aws.greengrass.SageMakerEdgeManager": {
+      "VersionRequirement": "1.0.3"
+    },
+    "aws.samples.windturbine.model": {
+      "VersionRequirement": "~1.0.0",
+      "DependencyType": "HARD"
+    }
+  },
+  "Manifests": [
+    {
+      "Platform": {
+        "os": "linux"
+      },
+      "Lifecycle": {
+        "Install": {
+          "Script": "set -x\nrm -rf venv\npython3 -m venv venv\n  . venv/bin/activate\npip3 install --upgrade pip\npython3 -m pip install --upgrade setuptools\npip3 install wheel\npip3 install awsiotsdk==1.6.0 requests\npip3 install grpcio==1.38.0 grpcio-tools==1.38.0\npip3 install numpy PyWavelets==1.1.1"
+        },
+        "Run": {
+          "Script": ". venv/bin/activate\nPYTHONPATH={artifacts:decompressedPath}/detector/inference python3 -u {artifacts:decompressedPath}/detector/run.py \\\n   --agent-socket {aws.greengrass.SageMakerEdgeManager:configuration:/UnixSocketName} --model-path {aws.samples.windturbine.model:work:path}"
+        }
+      },
+      "Artifacts": [
+        {
+          "Uri": "s3://_BUCKET_/aws.samples.windturbine.detector/1.0.0/detector.zip",
+          "Unarchive": "ZIP",
+          "Permission": {
+            "Execute": "OWNER"
+          }
+        }
+      ]
+    }
+  ]
+}
