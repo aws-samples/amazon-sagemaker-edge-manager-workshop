@@ -32,7 +32,7 @@ This module is divided in four exercises: Warm up, Data Visualization, Model Bui
 </p>
 
 ## 3.2/4 - Packaging model and Deploying the application using IoT Jobs
-<a href="03-Package-Deploy/iot-jobs/03-package-using-iot-jobs.ipynb">Notebook</a>: Here you'll complie the model using SageMaker Neo, package the model using SageMaker Edge Manager and deploy the model and the application using native AWS IoT deployment jobs. Below is the architecture diagram showcasing the same: 
+<a href="03-Package-Deploy/iot-jobs/03-package-deploy-using-iot-jobs.ipynb">Notebook</a>: Here you'll complie the model using SageMaker Neo, package the model using SageMaker Edge Manager and deploy the model and the application using native AWS IoT deployment jobs. Below is the architecture diagram showcasing the same: 
 <p align="center">
     <img src="../imgs/EdgeManagerWorkshop_Macro.png"></a>
 </p>
