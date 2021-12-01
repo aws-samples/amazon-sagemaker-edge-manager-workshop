@@ -44,10 +44,18 @@ This module is divided in four exercises: Warm up, Data Visualization, Model Bui
     <img src="../imgs/ggv2_lab4_app_arch.png"></a>
 </p>
 
+### Device application
+This is the anomaly detection Python application that could be deployed into a real device. It is responsible for reading the sensors (from the simulator in this case), prepare the data and invoke the model through SageMaker Edge Agent greengrass component and sending data to the Simulator Dashboard. 
+
+### Simulator
+This is a multithreaded application that launches one Thread per each Turbine and Each edge device to simulate a real environment, where you would have one Edge device connected to each Wind Turbine. It also has a dashboard with animation and some buttons, that you can see [here](../README.md).
+
+The buttons serve to inject noise into the read data and simulates anomalies that are detected by the ML Model and plotted as violations in the Dashboard.
+
 If using Greengrass V2, we dont need an OTA module to update model as that will be handled by Greengrass itself.
 
 
-## 4.2/4 - Packaging model and Deploying the application using IoT Jobs
+## 4.2/4 - Run the fleet using IoT Jobs
 <a href="04-Run-Fleet/iot-jobs/04-run-fleet-iot-jobs.ipynb">Notebook</a>: Here you'll run the simulator of the wind turbine farm and launch 5 SageMaker Edge Agents (one per turbine). A Python application then reads the sensors data, prepares the data and then invokes the anomaly detection model by calling SageMaker Edge Manager's API. You'll be able to visualize all this process in the Simulator's UI. The following diagram shows the application architecture. The application is divided into two parts: Device Application and Simulator.
 <p align="center">
     <img src="../imgs/EdgeManagerWorkshop_App.png"></a>
@@ -69,5 +77,6 @@ This is a multithreaded application that launches one Thread per each Turbine an
 
 The buttons serve to inject noise into the read data and simulates anomalies that are detected by the ML Model and plotted as violations in the Dashboard.
 
+
 ### Cleaning
-In notebook #3, there are instructions of how to delete the project and all the resources created for it. Just run the cell and wait for the cleanup.
+In the last notebook, there are instructions of how to delete the project and all the resources created for it. Just run the cell and wait for the cleanup.
