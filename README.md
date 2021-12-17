@@ -44,21 +44,21 @@ The workshop was configured as a [SageMaker Studio Project](https://docs.aws.ama
  
 It will ask you the **Name, not the ARN** of the Role Studio is using - Curious about how to create your own SageMaker Studio Project Template? Take a look on [this link](https://docs.aws.amazon.com/sagemaker/latest/dg/sagemaker-projects-templates-custom.html);  
     **Make sure you marked the IAM Acknowledge checkbox before creating your Stack** ![Ack](imgs/cloudformation_ack.png)
- 5. The previous step will create a new SageMaker Project template. Now open SageMaker Studio, go to "Components and registries" (left menu: the icon seems like a rotated triangle)
-     1. Click on the button **Create Project**;
-     2. Click on the tab **Organizational Templates**;
-     3. Select the template **SageMaker Edge Manager WindTurbine Workshop**;
-     4. If you're not seeing this template and the previous steps were executed correctly, you can force Studio to refresh the environment. In Studio, save all the pending work, then click on File -> Shutdown;
-     5. Click on the button **Select project template**;
-     6. Give a name for your project: i.e. wind-turbine-farm;
-     7. Click on the button **Create project** and wait a couple of minutes. You need to see the status **Created** at the right side of the project name;
-5. Double-click on the project name;
-6. Click on the tab **Repositories**;
-7. You'll see one repository with the name starting with **sagemaker-wind-turbine-farm-**. Click on the link of the **Local path** and clone the repo;
-8. Studio will open automatically the folders of the cloned project and you're ready to start the exercises;
+ 5. The previous step will create a new SageMaker Project template. Now open SageMaker Studio, go to "Components and registries" (left menu: the icon seems like a rotated triangle)  
+     1. Click on the button **Create Project**;  
+     2. Click on the tab **Organizational Templates**;  
+     3. Select the template **SageMaker Edge Manager WindTurbine Workshop**;  
+     4. If you're not seeing this template and the previous steps were executed correctly, you can force Studio to refresh the environment. In Studio, save all the pending work, then click on File -> Shutdown;  
+     5. Click on the button **Select project template**;  
+     6. Give a name for your project: i.e. wind-turbine-farm;  
+     7. Click on the button **Create project** and wait a couple of minutes. You need to see the status **Created** at the right side of the project name;  
+5. Double-click on the project name;  
+6. Click on the tab **Repositories**;  
+7. You'll see one repository with the name starting with **sagemaker-wind-turbine-farm-**. Click on the link of the **Local path** and clone the repo;  
+8. Studio will open automatically the folders of the cloned project and you're ready to start the exercises;  
 
-### What was created by the project?
-The following diagram shows which resources were deployed via CloudFormation by SageMaker projects when you create a new project based on the imported template:
+### What was created by the project?  
+The following diagram shows which resources were deployed via CloudFormation by SageMaker projects when you create a new project based on the imported template:  
 <p align="center">
     <img src="imgs/EdgeManagerWorkshop_CFN.png"></img>
 </p>
