@@ -43,7 +43,7 @@ The workshop was configured as a [SageMaker Studio Project](https://docs.aws.ama
  [![Launch Stack](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://console.aws.amazon.com/cloudformation/home#/stacks/new?stackName=sagemaker-edge-manager-workshop&templateURL=https://s3.amazonaws.com/ee-assets-prod-us-east-1/modules/23c647abc48b4d8292d5da1af579c199/v1/deploy_sagemaker_project_template.yml)  
  
 It will ask you the **Name, not the ARN** of the Role Studio is using - Curious about how to create your own SageMaker Studio Project Template? Take a look on [this link](https://docs.aws.amazon.com/sagemaker/latest/dg/sagemaker-projects-templates-custom.html);  
-    **Make sure you marked the IAM Acknowledge checkbox before creating your Stack** ![Ack](imgs/cloudformation_ack.png)
+    **Make sure you marked the IAM Acknowledge checkbox before creating your Stack** ![Ack](imgs/cloudformation_ack.png)  
  5. The previous step will create a new SageMaker Project template. Now open SageMaker Studio, go to "Components and registries" (left menu: the icon seems like a rotated triangle)  
      1. Click on the button **Create Project**;  
      2. Click on the tab **Organizational Templates**;  
