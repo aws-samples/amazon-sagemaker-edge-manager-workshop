@@ -1,2 +1,6 @@
 .DS_Store
 */.DS_Store
+lab/.ipynb_checkpoints/*
+__MACOSX/*
+lab/.ipynb_checkpoints
+
