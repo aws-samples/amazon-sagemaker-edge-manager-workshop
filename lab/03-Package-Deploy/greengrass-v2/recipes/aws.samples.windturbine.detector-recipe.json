@@ -24,7 +24,7 @@
   },
   "ComponentDependencies": {
     "aws.greengrass.SageMakerEdgeManager": {
-      "VersionRequirement": "1.0.3"
+      "VersionRequirement": "1.1.0"
     },
     "aws.samples.windturbine.model": {
       "VersionRequirement": "~1.0.0",
