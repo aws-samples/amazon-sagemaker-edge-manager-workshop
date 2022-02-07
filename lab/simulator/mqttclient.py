@@ -63,18 +63,18 @@ class Client():
             topic, json_payload, mqtt.QoS.AT_LEAST_ONCE)
 
         
-    def subscribe_to_topics(self, turbine_id, callback_update_label, callback_update_anomalies):
-        """
-        Used by WindTurbine class to subscribe to topics coming from inference app
-        """
-        try:
-            turbine_update_label_topic = f'wind-turbine/{turbine_id}/label/update'
-            self.subscribe(turbine_update_label_topic, mqtt.QoS.AT_LEAST_ONCE, handler=callback_update_label)
+    # def subscribe_to_topics(self, turbine_id, callback_update_label, callback_update_anomalies):
+    #     """
+    #     Used by WindTurbine class to subscribe to topics coming from inference app
+    #     """
+    #     try:
+    #         turbine_update_label_topic = f'wind-turbine/{turbine_id}/label/update'
+    #         self.subscribe(turbine_update_label_topic, mqtt.QoS.AT_LEAST_ONCE, handler=callback_update_label)
 
-            turbine_anomalies_topic = f'wind-turbine/{turbine_id}/anomalies'
-            self.subscribe(turbine_anomalies_topic, mqtt.QoS.AT_LEAST_ONCE, handler=callback_update_anomalies)
-        except Exception as ex:
-            raise ex
+    #         turbine_anomalies_topic = f'wind-turbine/{turbine_id}/anomalies'
+    #         self.subscribe(turbine_anomalies_topic, mqtt.QoS.AT_LEAST_ONCE, handler=callback_update_anomalies)
+    #     except Exception as ex:
+    #         raise ex
 
 
     def subscribe(self, topic, qos, handler):

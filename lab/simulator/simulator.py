@@ -17,7 +17,7 @@ import logging
 
 """
 This Class represents the simulator which is rending the simulation in notebook to present the 
-wind turbines and provide utility functions to Turbine.
+wind turbines and provide utility functions to stop/start and inject noise in the turbine.
 """
 
 class WindTurbineFarmSimulator(object):
@@ -86,7 +86,7 @@ class WindTurbineFarmSimulator(object):
     
     def __callback_update_dashboard__(self, topic, payload, dup, qos, retain, **kwargs):
         """
-        Callback when turbine receives new data to be updated on dashboard from the inference app
+        Callback when turbine receives new data from the inference app; to be updated on dashboard 
         """
         turbine_id = int(topic.split("/")[1])
         json_response = json.loads(payload)

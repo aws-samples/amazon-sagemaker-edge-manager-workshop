@@ -34,11 +34,11 @@ class WindTurbine(object):
         self.stopped_img = open('../../imgs/wind_turbine.png', 'rb').read()
         self.running_img = open('../../imgs/wind_turbine.gif', 'rb').read()
         self.button = widgets.Button(description='Start (Id: %d)' % self.turbine_id)
-        self.button.on_click(self.__on_button_clicked)
+        self.button.on_click(self.__on_button_clicked__)
         
         self.img = widgets.Image(value=self.stopped_img,width=150, height=170)
         self.status_label = widgets.Label(
-            layout={'width': "150px"}, value=''
+            layout={'width': "150px"}, value='Model not loaded'
         )
 
         self.vibration_status = widgets.Valid(value=False, description='Vibration')
@@ -57,10 +57,16 @@ class WindTurbine(object):
             widgets.HBox(self.noise_buttons)            
         ], layout={'visibility': 'hidden'})          
 
-#         subscribe to messages from inference app
-        self.mqtt_client.subscribe_to_topics(self.turbine_id,
-                                            self.callback_update_label,
-                                            self.callback_update_anomalies)
+        # subscribe to messages from inference app
+        self.turbine_update_label_topic = f'wind-turbine/{turbine_id}/label/update'
+        self.mqtt_client.subscribe(self.turbine_update_label_topic, mqtt.QoS.AT_LEAST_ONCE, handler=self.__callback_update_label__)
+
+        self.turbine_anomalies_topic = f'wind-turbine/{turbine_id}/anomalies'
+        self.mqtt_client.subscribe(self.turbine_anomalies_topic, mqtt.QoS.AT_LEAST_ONCE, handler=self.__callback_update_anomalies__)
+
+        # self.mqtt_client.subscribe_to_topics(self.turbine_id,
+        #                                     self.callback_update_label,
+        #                                     self.callback_update_anomalies)
         
         self.feature_ids = np.array([8,9,10,7,  22, 5, 6]) # qX,qy,qz,qw  ,wind_seed_rps, rps, voltage  
         self.feature_names = np.array(['qx', 'qy', 'qz', 'qw', 'wind speed rps', 'rps', 'voltage'])
@@ -75,7 +81,7 @@ class WindTurbine(object):
         # change color when enabled/disabled
         btn.style.button_color = 'lightgreen' if btn.style.button_color is None else None
         
-    def __on_button_clicked(self, _):
+    def __on_button_clicked__(self, _):
         """ Deals with the event of Starting / Stopping the Turbine"""
         if self.halted:
             return
@@ -153,12 +159,7 @@ class WindTurbine(object):
     def is_running(self):
         return self.running
     
-    def update_label(self, value):
-        self.status_label.value = value
-        if self.is_running():
-            self.anomaly_status.layout.visibility='visible'
-        else:
-            self.anomaly_status.layout.visibility='hidden'
+
             
         
     def detected_anomalies(self, values, anomalies ):
@@ -185,18 +186,29 @@ class WindTurbine(object):
         ])
     
 
-    def callback_update_label(self, topic, payload, dup, qos, retain, **kwargs):
+    def __callback_update_label__(self, topic, payload, dup, qos, retain, **kwargs):
         """
         Callback when turbine receives new data to be updated on turbine label from the inference app
         """
+        print("got the label update")
         json_response = json.loads(payload)
         model_label_status = json_response['model_label_status']
         self.update_label(model_label_status)
 
 
-    def callback_update_anomalies(self, topic, payload, dup, qos, retain, **kwargs):
+    def update_label(self, value):
+        print("status label value is: ", value)
+        self.status_label.value = value
+        if self.is_running():
+            self.anomaly_status.layout.visibility='visible'
+        else:
+            self.anomaly_status.layout.visibility='hidden'
+
+
+    def __callback_update_anomalies__(self, topic, payload, dup, qos, retain, **kwargs):
         """
         Callback when turbine receives anomaly data from the inference app
         """
+        print("got anomaly from inferece app")
         json_response = json.loads(payload)
         self.detected_anomalies(np.array(json_response['values']), np.array(json_response['anomalies']))

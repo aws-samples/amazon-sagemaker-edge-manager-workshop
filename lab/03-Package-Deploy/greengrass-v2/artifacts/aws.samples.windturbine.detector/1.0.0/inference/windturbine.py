@@ -49,8 +49,7 @@ class WindTurbine(object):
             logging.error('It was not possible to load the model. Is the agent running?')
             sys.exit(1)
         self.model_loaded = True 
-        model_loaded= {"model_label_status" : "Model Loaded"}
-        self.msg_client.publish_model_status(model_loaded)
+        self.msg_client.publish_model_status({"model_label_status" : "Model Loaded"})
         
 
         # we need to load the statistics computed in the data prep notebook
