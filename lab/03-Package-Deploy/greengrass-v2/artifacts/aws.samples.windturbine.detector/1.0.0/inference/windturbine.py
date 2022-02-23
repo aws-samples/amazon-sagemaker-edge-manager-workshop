@@ -49,7 +49,8 @@ class WindTurbine(object):
             logging.error('It was not possible to load the model. Is the agent running?')
             sys.exit(1)
         self.model_loaded = True 
-        self.msg_client.publish_model_status({"model_label_status" : "Model Loaded"})
+        
+        self.model_status_published = False
         
 
         # we need to load the statistics computed in the data prep notebook
@@ -113,7 +114,6 @@ class WindTurbine(object):
             "voltage": 70
         }
         """
-
         json_response = json.loads(payload)
         raw_data = np.array(list(json_response.values()))
         self.acc_buffer.append(raw_data)
@@ -140,11 +140,15 @@ class WindTurbine(object):
 
         # create a copy & prep the data
         data = self.__data_prep__(np.array(buffer))
-            
+        
         if not self.edge_agent.is_model_loaded(self.model_meta['model_name']):
             model_label_data = {"model_label_status" : "Model not loaded"}
             self.msg_client.publish_model_status(model_label_data)
             return
+        else:
+            if self.model_status_published is False:
+                self.msg_client.publish_model_status({"model_label_status" : "Model loaded"})
+                self.model_status_published = True
 
         x = self.__preprocess_data__(data)
         # run the model                    
