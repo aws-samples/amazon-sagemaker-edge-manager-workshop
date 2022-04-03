@@ -280,10 +280,8 @@ Resources:
       RepositoryDescription: !Sub Infrastructure as code for the Project ${SageMakerProjectName}
       Code:
         S3:
-          # Bucket: ee-assets-prod-us-east-1
-          # Key: modules/23c647abc48b4d8292d5da1af579c199/v1/wind_turbine_farm_v1.0.zip
-          Bucket: em-testing-ws
-          Key: zip/wind_turbine_farm_v1.0.zip
+          Bucket: ee-assets-prod-us-east-1
+          Key: modules/23c647abc48b4d8292d5da1af579c199/v1/wind_turbine_farm_v1.0.zip
         BranchName: main
 
   InfraSetupBuildProject:

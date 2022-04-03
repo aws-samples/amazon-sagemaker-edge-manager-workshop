@@ -31,8 +31,7 @@ Resources:
         - Description: "SageMaker Project template for the Edge Manager workshop"
           DisableTemplateValidation: false
           Info:
-            # LoadTemplateFromURL: "https://s3.amazonaws.com/ee-assets-prod-us-east-1/modules/23c647abc48b4d8292d5da1af579c199/v1/sagemaker_project.yml"
-            LoadTemplateFromURL: "https://em-testing-ws.s3.us-west-2.amazonaws.com/sagemaker_project.yml"
+            LoadTemplateFromURL: "https://s3.amazonaws.com/ee-assets-prod-us-east-1/modules/23c647abc48b4d8292d5da1af579c199/v1/sagemaker_project.yml"
       Tags:
         - Key: sagemaker:studio-visibility
           Value: true
@@ -163,8 +162,7 @@ Resources:
             Action:
             - "s3:GetObject"
             Resource:
-            # - "arn:aws:s3:::ee-assets-prod-us-east-1/modules/23c647abc48b4d8292d5da1af579c199/v1/*"
-            - "arn:aws:s3:::em-testing-ws/*"
+            - "arn:aws:s3:::ee-assets-prod-us-east-1/modules/23c647abc48b4d8292d5da1af579c199/v1/*"
           - Effect: Allow
             Action:
             - "sagemaker:CreateDeviceFleet"
