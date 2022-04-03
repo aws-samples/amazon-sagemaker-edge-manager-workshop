@@ -38,7 +38,7 @@ class WindTurbine(object):
         
         self.img = widgets.Image(value=self.stopped_img,width=150, height=170)
         self.status_label = widgets.Label(
-            layout={'width': "150px"}, value='Model not loaded'
+            layout={'width': "150px"}, value='Model loaded'
         )
 
         self.vibration_status = widgets.Valid(value=False, description='Vibration')
