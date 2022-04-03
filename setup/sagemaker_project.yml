@@ -43,7 +43,15 @@ Resources:
             Statement:
             - Effect: Allow
               Action:
-              - 's3:*'
+              - "s3:CreateBucket"
+              - "s3:GetBucketAcl"
+              - "s3:GetObject"
+              - "s3:ListBucket"
+              - "s3:GetBucketLocation"
+              - "s3:PutObject"
+              - "s3:ListObjects"
+              - "s3:ListAllMyBuckets"
+              - "s3:HeadBucket"
               Resource: 
               - !GetAtt WindTurbineFarmBucket.Arn
               - !Join [ '/', [ !GetAtt WindTurbineFarmBucket.Arn, '*' ] ]
@@ -113,19 +121,82 @@ Resources:
             - !Sub "arn:aws:sagemaker:*:${AWS::AccountId}:model-package-group/*"
           - Effect: Allow
             Action:
-            - "s3:*"
+            - "s3:CreateBucket"
+            - "s3:GetBucketAcl"
+            - "s3:GetObject"
+            - "s3:ListBucket"
+            - "s3:GetBucketLocation"
+            - "s3:PutObject"
+            - "s3:ListObjects"
+            - "s3:ListAllMyBuckets"
+            - "s3:HeadBucket"
             Resource:
             - "arn:aws:s3:::*"
           - Effect: Allow
             Action:
-            - "codecommit:*"
-            - "codebuild:*"
-            - "codedeploy:*"
-            - "codepipeline:*"
-            - "logs:*"
+            - "codecommit:CancelUploadArchive"
+            - "codecommit:CreateBranch"
+            - "codecommit:CreateRepository"
+            - "codecommit:DeleteRepository"
+            - "codecommit:GetBranch"
+            - "codecommit:GetCommit"
+            - "codecommit:GetCommitHistory"
+            - "codecommit:GetRepository"
+            - "codecommit:GetRepositoryTriggers"
+            - "codecommit:GetTree"
+            - "codecommit:GetUploadArchiveStatus"
+            - "codecommit:GitPull"
+            - "codecommit:GitPush"
+            - "codecommit:ListBranches"
+            - "codecommit:ListRepositories"
+            - "codecommit:PutFile"
+            - "codecommit:UpdateComment"
+            - "codecommit:UpdateRepositoryName"
+            - "codecommit:UploadArchive"
+            - "codebuild:CreateProject"
+            - "codebuild:DeleteProject"
+            - "codebuild:ListBuilds"
+            - "codebuild:ListBuildsForProject"
+            - "codebuild:ListProjects"
+            - "codebuild:ListRepositories"
+            - "codebuild:StartBuild"
+            - "codebuild:StopBuild"
+            - "codebuild:UpdateProject"
+            - "codepipeline:CreatePipeline"
+            - "codepipeline:DeletePipeline"
+            - "codepipeline:DisableStageTransition"
+            - "codepipeline:EnableStageTransition"
+            - "codepipeline:GetJobDetails"
+            - "codepipeline:GetPipeline"
+            - "codepipeline:GetPipelineExecution"
+            - "codepipeline:GetPipelineState"
+            - "codepipeline:ListActionTypes"
+            - "codepipeline:ListPipelineExecutions"
+            - "codepipeline:ListPipelines"
+            - "codepipeline:PollForJobs"
+            - "codepipeline:PutActionRevision"
+            - "codepipeline:PutApprovalResult"
+            - "codepipeline:PutJobFailureResult"
+            - "codepipeline:PutJobSuccessResult"
+            - "codepipeline:RetryStageExecution"
+            - "codepipeline:StartPipelineExecution"
+            - "codepipeline:UpdatePipeline"
+            - "logs:CreateLogGroup"
+            - "logs:CreateLogStream"
+            - "logs:DescribeLogGroups"
+            - "logs:DescribeLogStreams"
+            - "logs:DescribeSubscriptionFilters"
+            - "logs:FilterLogEvents"
+            - "logs:GetLogEvents"
+            - "logs:ListTagsLogGroup"
+            - "logs:PutDestination"
+            - "logs:PutLogEvents"
+            - "logs:PutResourcePolicy"
             Resource:
             - !GetAtt CodeRepository.Arn
-            - "*"
+            - !Sub "arn:aws:codepipeline:*:${AWS::AccountId}:sagemaker-*"
+            - !Sub "arn:aws:codebuild:*:${AWS::AccountId}:project/sagemaker-*"
+            - !Sub "arn:aws:codecommit:*:${AWS::AccountId}:sagemaker-*"
       PolicyName: !Sub AdditionalDeployment-${SageMakerProjectId}
       Roles:
         - AmazonSageMakerServiceCatalogProductsUseRole 
@@ -209,8 +280,10 @@ Resources:
       RepositoryDescription: !Sub Infrastructure as code for the Project ${SageMakerProjectName}
       Code:
         S3:
-          Bucket: ee-assets-prod-us-east-1
-          Key: modules/23c647abc48b4d8292d5da1af579c199/v1/wind_turbine_farm_v1.0.zip
+          # Bucket: ee-assets-prod-us-east-1
+          # Key: modules/23c647abc48b4d8292d5da1af579c199/v1/wind_turbine_farm_v1.0.zip
+          Bucket: em-testing-ws
+          Key: zip/wind_turbine_farm_v1.0.zip
         BranchName: main
 
   InfraSetupBuildProject:

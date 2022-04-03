@@ -135,12 +135,21 @@ Resources:
               - iot:Publish
               - iot:Subscribe
               - iot:Receive
-              - s3:*
+              - "s3:CreateBucket"
+              - "s3:GetBucketAcl"
+              - "s3:GetObject"
+              - "s3:ListBucket"
+              - "s3:GetBucketLocation"
+              - "s3:PutObject"
+              - "s3:ListObjects"
+              - "s3:ListAllMyBuckets"
+              - "s3:HeadBucket"
               - greengrass:CreateDeployment
               - greengrass:CreateComponentVersion
               - greengrass:DescribeComponent
             Effect: Allow
-            Resource: "*"
+            Resource:
+            - "*"
         Version: "2012-10-17"
       Description: ""
       ManagedPolicyName: WindturbinesStackTESRoleAccess

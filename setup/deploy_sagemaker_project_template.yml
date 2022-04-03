@@ -31,7 +31,8 @@ Resources:
         - Description: "SageMaker Project template for the Edge Manager workshop"
           DisableTemplateValidation: false
           Info:
-            LoadTemplateFromURL: "https://s3.amazonaws.com/ee-assets-prod-us-east-1/modules/23c647abc48b4d8292d5da1af579c199/v1/sagemaker_project.yml"
+            # LoadTemplateFromURL: "https://s3.amazonaws.com/ee-assets-prod-us-east-1/modules/23c647abc48b4d8292d5da1af579c199/v1/sagemaker_project.yml"
+            LoadTemplateFromURL: "https://em-testing-ws.s3.us-west-2.amazonaws.com/sagemaker_project.yml"
       Tags:
         - Key: sagemaker:studio-visibility
           Value: true
@@ -74,26 +75,55 @@ Resources:
         Statement:
           - Effect: Allow
             Action:
+            - "iot:AttachPolicy"
+            - "iot:AttachPrincipalPolicy"
+            - "iot:AttachThingPrincipal"
             - "iot:CreateJob"
+            - "iot:CancelJob"
+            - "iot:Connect"
+            - "iot:CreateRoleAlias"
+            - "iot:CreateKeysAndCertificate"
+            - "iot:CreatePolicy"
+            - "iot:CreateThing"     
             - "iot:DescribeJob"
             - "iot:DescribeJobExecution"
             - "iot:DescribeEndpoint"
-            - "iot:ListTargetsForPolicy"
-            - "iot:ListPrincipalThings"
+            - "iot:DescribeRoleAlias"
+            - "iot:DescribeThing"
             - "iot:DetachThingPrincipal"
             - "iot:DetachPolicy"
             - "iot:DeleteRoleAlias"
             - "iot:DeleteThingGroup"
+            - "iot:DeleteThing"
             - "iot:DescribeThingGroup"
-            - "iot:CancelJob"
+            - "iot:DeleteCertificate"
+            - "iot:EnableTopicRule"
+            - "iot:ListTargetsForPolicy"
+            - "iot:ListJobs"
+            - "iot:ListRoleAliases"
+            - "iot:ListPrincipalThings"
             - "iot:ListThingGroups"
+            - "iot:Publish"
+            - "iot:Receive"
+            - "iot:Subscribe"
+            - "iot:UpdateCertificate"
             - "sts:GetCallerIdentity"
             - "greengrass:CreateComponentVersion"
+            - "greengrass:DeleteComponentVersion"
+            - "greengrass:DeleteComponent"
             - "greengrass:CreateDeployment"
+            - "greengrass:CancelDeployment"
             - "greengrass:DeleteCoreDevice"
-            - "iam:*"
-            - "greengrass:*"
-            - "iot:*"
+            - "greengrass:GetDeploymentStatus"
+            - "greengrass:ListDeployments"
+            - "iam:CreatePolicy"
+            - "iam:CreateRole"
+            - "iam:GetInstanceProfile"
+            - "iam:GetRole"
+            - "iam:GetUser"
+            - "iam:ListPolicies"
+            - "iam:ListRoles"
+            - "iam:PassRole"
             Resource: 
               - "*"
           - Effect: Allow
@@ -133,7 +163,8 @@ Resources:
             Action:
             - "s3:GetObject"
             Resource:
-            - "arn:aws:s3:::ee-assets-prod-us-east-1/modules/23c647abc48b4d8292d5da1af579c199/v1/*"
+            # - "arn:aws:s3:::ee-assets-prod-us-east-1/modules/23c647abc48b4d8292d5da1af579c199/v1/*"
+            - "arn:aws:s3:::em-testing-ws/*"
           - Effect: Allow
             Action:
             - "sagemaker:CreateDeviceFleet"
